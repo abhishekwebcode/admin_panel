@@ -18,7 +18,7 @@
     <link rel="stylesheet" href="../css/intl-tel-input/intlTelInput.min.css">
     <link rel="stylesheet" href="../css/static.css">
     <link rel="stylesheet" href="./css/admin.css">
-
+    <link rel="stylesheet" href="./css/account.css">
 
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro&display=swap" rel="stylesheet">
@@ -110,37 +110,29 @@
                 <h3 class="mdc-drawer__title">Manage office</h3>
                 <div class="mdc-select mdc-select--outlined mdc-select--no-label" id="office-select">
                     <div class="mdc-select__anchor" aria-labelledby="outlined-select-label">
-                      <span id="demo-selected-text" class="mdc-select__selected-text"></span>
-                      <span class="mdc-select__dropdown-icon">
-                        <svg
-                            class="mdc-select__dropdown-icon-graphic"
-                            viewBox="7 10 10 5">
-                          <polygon
-                              class="mdc-select__dropdown-icon-inactive"
-                              stroke="none"
-                              fill-rule="evenodd"
-                              points="7 10 12 15 17 10">
-                          </polygon>
-                          <polygon
-                              class="mdc-select__dropdown-icon-active"
-                              stroke="none"
-                              fill-rule="evenodd"
-                              points="7 15 12 10 17 15">
-                          </polygon>
-                        </svg>
-                      </span>
-                      <span class="mdc-notched-outline">
-                        <span class="mdc-notched-outline__leading"></span>
-                        <span class="mdc-notched-outline__trailing"></span>
-                      </span>
+                        <span id="demo-selected-text" class="mdc-select__selected-text"></span>
+                        <span class="mdc-select__dropdown-icon">
+                            <svg class="mdc-select__dropdown-icon-graphic" viewBox="7 10 10 5">
+                                <polygon class="mdc-select__dropdown-icon-inactive" stroke="none" fill-rule="evenodd"
+                                    points="7 10 12 15 17 10">
+                                </polygon>
+                                <polygon class="mdc-select__dropdown-icon-active" stroke="none" fill-rule="evenodd"
+                                    points="7 15 12 10 17 15">
+                                </polygon>
+                            </svg>
+                        </span>
+                        <span class="mdc-notched-outline">
+                            <span class="mdc-notched-outline__leading"></span>
+                            <span class="mdc-notched-outline__trailing"></span>
+                        </span>
                     </div>
-                  
+
                     <!-- Other elements from the select remain. -->
                     <div class="mdc-select__menu mdc-menu mdc-menu-surface mdc-menu-surface--fullwidth" role="listbox">
                         <ul class="mdc-list" id="office-list">
                         </ul>
                     </div>
-                  </div>
+                </div>
 
             </div>
             <nav class="mdc-list">
@@ -177,53 +169,85 @@
 
     <div class="mdc-top-app-bar--fixed-adjust page-content-section mdc-drawer-app-content">
         <main class="main-content content-max-width">
-            <div class="pt-20 max-480 account-section">
+            <div class="pt-20  account-section">
 
                 <form class="container" id="manage-form">
-                    <div class="account-form">
-                        <div class="account-photo">
-                            <input type="file" accept="image/jpg" class="hidden" name="image-upload" id="image-upload">
-                            <label class="material-icons mdc-icon-button upload-btn" for="image-upload"
-                                type="button">add_a_photo</label>
+               
+                    <div class="account-form mdc-elevation--z2">
+                        <div class='inline-flex account-card--heading'>
+                            <i class="material-icons mr-10">edit</i>
+                            <div class='heading'>EDIT PROFILE</div>
                         </div>
-                        <div class="onboarding-content--text">Name</div>
-                        <label
-                            class="mdc-text-field mdc-text-field--outlined mdc-text-field--label-floating mdc-text-field--no-label"
-                            id="account-name">
-                            <input class="mdc-text-field__input" required autocomplete="name">
-                            <span class="mdc-notched-outline mdc-notched-outline--no-label">
-                                <span class="mdc-notched-outline__leading"></span>
-                                <span class="mdc-notched-outline__trailing"></span>
-                            </span>
-                        </label>
-                        <div class="mdc-text-field-helper-line">
-                            <div class="mdc-text-field-helper-text mdc-text-field-helper-text--validation-msg"
-                                aria-hidden="true"></div>
+                        <div class="edit-profile">
+                            <div class="mdc-layout-grid__inner">
+                                <div class="mdc-layout-grid__cell mdc-layout-grid__cell--span-8-tablet mdc-layout-grid__cell--span-2-desktop">
+                                    <div class="account-photo">
+                                        <input type="file" accept="image/jpg" class="hidden" name="image-upload"
+                                            id="image-upload">
+                                        <label class="material-icons mdc-icon-button upload-btn" for="image-upload"
+                                            type="button">add_a_photo</label>
+                                    </div>
+                                </div>
+                                <div class="mdc-layout-grid__cell mdc-layout-grid__cell--span-8-tablet">
+                                    <div class="onboarding-content--text">Name</div>
+                                    <label
+                                        class="mdc-text-field mdc-text-field--outlined mdc-text-field--label-floating mdc-text-field--no-label"
+                                        id="account-name">
+                                        <input class="mdc-text-field__input" required autocomplete="name">
+                                        <span class="mdc-notched-outline mdc-notched-outline--no-label">
+                                            <span class="mdc-notched-outline__leading"></span>
+                                            <span class="mdc-notched-outline__trailing"></span>
+                                        </span>
+                                    </label>
+                                    <div class="mdc-text-field-helper-line">
+                                        <div class="mdc-text-field-helper-text mdc-text-field-helper-text--validation-msg"
+                                            aria-hidden="true"></div>
+                                    </div>
+                                </div>
+                                <div class="mdc-layout-grid__cell mdc-layout-grid__cell--span-8-tablet">
+                                    <div class="onboarding-content--text">Email</div>
+                                    <label
+                                        class="mdc-text-field mdc-text-field--outlined mdc-text-field--label-floating mdc-text-field--no-label"
+                                        id="account-email">
+                                        <input class="mdc-text-field__input" placeholder="" required autocomplete="email"
+                                            type="email">
+                                        <span class="mdc-notched-outline mdc-notched-outline--no-label">
+                                            <span class="mdc-notched-outline__leading"></span>
+                                            <span class="mdc-notched-outline__trailing"></span>
+                                        </span>
+                                    </label>
+                                    <div class="mdc-text-field-helper-line">
+                                        <div class="mdc-text-field-helper-text mdc-text-field-helper-text--validation-msg"
+                                            aria-hidden="true"></div>
+                                    </div>
+                                </div>
+                                <div class="mdc-layout-grid__cell mdc-layout-grid__cell--span-8-tablet mdc-layout-grid__cell--span-2-desktop mdc-layout-grid__cell--align-middle">
+                                    
+                                        <button class="mdc-button mdc-button--raised form-submit" data-mdc-auto-init="MDCRipple"
+                                            type="submit">
+                                            <div class="mdc-button__ripple"></div>
+                                            <div class="straight-loader"></div>
+                                            <span class="mdc-button__label">SAVE</span>
+                                        </button>
+                                </div>
+                            </div>
                         </div>
-                        <div class="onboarding-content--text mdc-typography--headline6">Email</div>
-                        <label
-                            class="mdc-text-field mdc-text-field--outlined mdc-text-field--label-floating mdc-text-field--no-label"
-                            id="account-email">
-                            <input class="mdc-text-field__input" placeholder="" required autocomplete="email"
-                                type="email">
-                            <span class="mdc-notched-outline mdc-notched-outline--no-label">
-                                <span class="mdc-notched-outline__leading"></span>
-                                <span class="mdc-notched-outline__trailing"></span>
-                            </span>
-                        </label>
-                        <div class="mdc-text-field-helper-line">
-                            <div class="mdc-text-field-helper-text mdc-text-field-helper-text--validation-msg"
-                                aria-hidden="true"></div>
-                        </div>
-                    </div>
-                    <div class="form-actionable">
-                        <button class="mdc-fab mdc-fab--extended mdc-fab--action" data-mdc-auto-init="MDCRipple" type="submit">
-                            <div class="mdc-fab__ripple"></div>
-                            <div class="straight-loader"></div>
-                            <span class="mdc-fab__label">SAVE</span>
-                        </button>
                     </div>
                 </form>
+                <div id="subscription-cont" class="mt-20  mdc-elevation--z2">
+                    <div class='subscription-details'>
+                        <div class='inline-flex account-card--heading'>
+                            <i class="material-icons mr-10">card_membership</i>
+                            <div class='heading'>SUBSCRIPTION DETAILS</div>
+                        </div>
+                        <div id="details"></div>
+                        <div class='show-more text-center' id="show-previous">View Previous Details
+                        </div>
+                        <span id='error' class='mdc-theme--error'></span>
+                    </div>
+                </div>
+            </div>
+
             </div>
         </main>
     </div>
@@ -278,6 +302,8 @@
     <script src="./js/utils.js"></script>
     <script src="./js/account.js"></script>
     <script src="./js/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.2.0/jspdf.umd.min.js"></script>
+
 </body>
 
 </html>
