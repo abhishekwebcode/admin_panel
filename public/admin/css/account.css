@@ -1,0 +1,97 @@
+
+.account-photo {
+    position: relative;
+    display: block;
+    margin: 0 auto;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background-image: url(../../img/person.png);
+    background-position: center;
+    background-size: contain;
+    padding: 10px;
+    border: 1px solid rgb(102 102 102);
+}
+
+.account-photo .upload-btn {
+    background-color: var(--mdc-theme-primary);
+    border-radius: 50%;
+    position: absolute;
+    right: 0;
+    bottom: 0px;
+    cursor: pointer;
+    color: white;
+    font-size: 18px;
+    width: 40px;
+    height: 40px;
+}
+
+.form-submit {
+    height: 36px;
+    width: 100%;
+    font-size: 18px;
+    font-weight: 500;
+}
+
+@media (min-width:840px) {
+    .form-submit {
+        height: 56px;
+    }
+}
+
+form .mdc-text-field {
+    margin-bottom: 0px;
+}
+
+.edit-profile {
+    padding: 16px;
+}
+
+.account-card--heading {
+    width: calc(100% - 32px);
+    padding: 16px;
+    border-bottom: 1px solid rgb(102 102 102);
+}
+.account-card--heading .heading {
+    font-size: 16px;
+    font-weight: 600;
+    color: rgb(102 102 102)
+}
+#subscription-cont, .account-form {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    
+    
+}
+#subscription-cont hr {
+    margin: 0px;
+}
+.plan {
+    font-weight: 500;
+    color: rgb(102 102 102);
+}
+.expiry-end {
+    text-align: right;
+}
+@media (max-width:480px) {
+    .expiry-end {
+        text-align:left;
+    }
+
+}
+.subscription-card {
+    border-bottom: 1px solid rgb(102 102 102);
+    padding: 16px 16px 10px 16px
+}
+.subscription-card:last-child {
+    border-bottom: none;
+}
+
+
+.show-more {
+    border-top: 1px solid rgb(102 102 102);
+    padding: 10px;
+    color: rgb(102 102 102);
+    font-weight: 600;
+    cursor: pointer;
+}
