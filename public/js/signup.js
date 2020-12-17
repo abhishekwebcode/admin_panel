@@ -903,8 +903,9 @@ function choosePlan() {
                 office: officeData.name,
                 paymentType: "membership",
                 paymentMethod: "pgCashfree",
-                extendDuration: duration,
-                phoneNumber: firebase.auth().currentUser.phoneNumber
+                phoneNumber: firebase.auth().currentUser.phoneNumber,
+                pstart:1615967891000,
+                pend:duration
             }).then(res => {
                 onboarding_data_save.set({
                     plan: planSelected,
@@ -1176,7 +1177,7 @@ const isCardNumberValid = (cardNumber) => {
 }
 
 const getDuration = (amount) => {
-    const d = new Date();
+    const d = new Date(1615967891000);
     switch (amount) {
         case 999:
             d.setMonth(d.getMonth() + 3);

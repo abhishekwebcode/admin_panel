@@ -95,3 +95,7 @@ form .mdc-text-field {
     font-weight: 600;
     cursor: pointer;
 }
+
+.mdc-data-table {
+    width: 100%;
+}

@@ -55,27 +55,61 @@ const init = (office, officeId) => {
             handleFormButtonSubmit(submitBtn, message);
         })
     });
-    getMemberShipDetails(officeId, 1, 0).then(response => {
-        clearError();
-        const subscriptions = response.results
-        if (!subscriptions.length) {
-            document.getElementById('details').innerHTML = '<span>No pamynets found</span>'
-            return
-        };
-        handleSubscriptions(subscriptions,office)
 
-        document.getElementById('show-previous').addEventListener('click', function(){
-            clearError()
-            getMemberShipDetails(officeId, response.size, 1).then(res => {
-                this.remove()
-                handleSubscriptions(res.results,office);
-            }).catch(handleSubscriptionError);
-        })
+
+    getOfficeActivity(officeId).then(activity=>{
+        const endTime = activity.schedule[0].endTime;
+        // console.log(moment.duration(moment(endTime).diff(moment(),'months',true),'months'))
+        document.getElementById('start-date').textContent = moment(activity.schedule[0].startTime).format('DD MMM YYYY')
+        document.getElementById('end-date').textContent = moment(endTime).format('DD MMM YYYY')
+        document.getElementById('days-left').textContent = getMemberShipEnd(endTime);
+        document.getElementById('status').innerHTML = isOfficeActive(activity) ? "<span class='mdc-theme--success'><i class='material-icons mr-10'>done</i> Active</span>" : "<span class='mdc-theme--error'><i class='material-icons mr-10'>cancel</i> Inactive</span>"
+    }).catch(err=>{
+        console.error(err)
+        document.querySelector('#subscription-cont .details').innerHTML = `<p class='mdc-theme--error text-center mdc-typography--headline6'>Try again later</p>`
+    })
+
+
+    // getMemberShipDetails(officeId, 1, 0).then(response => {
+    //     clearError();
+    //     const subscriptions = response.results
+    //     if (!subscriptions.length) {
+    //         document.getElementById('details').innerHTML = '<span>No pamynets found</span>'
+    //         return
+    //     };
+    //     handleSubscriptions(subscriptions,office)
+
+    //     document.getElementById('show-previous').addEventListener('click', function(){
+    //         clearError()
+    //         getMemberShipDetails(officeId, response.size, 1).then(res => {
+    //             this.remove()
+    //             handleSubscriptions(res.results,office);
+    //         }).catch(handleSubscriptionError);
+    //     })
       
-    }).catch(handleSubscriptionError)
+    // }).catch(handleSubscriptionError)
+
 }
 
+const getMemberShipEnd = (endTime) => {
+    const current = moment();
+    const end = moment(endTime);
 
+    const years = end.diff(current.valueOf(),'years')
+    current.add(years,'years')
+
+    const months = end.diff(current.valueOf(),'months')
+    current.add(months,'months');
+
+    const days = moment(endTime).diff(current.valueOf(),'days')
+
+    return `${years ? `${years} years` :''} ${months ? `${months} months` :''} ${days ? `${days} days` :''}`
+}
+
+const isOfficeActive = (activity) => {
+    const currentTs = Date.now();
+    return activity.status === "CONFIRMED" && currentTs >= activity.schedule[0].start && currentTs <= activity.schedule[0].endTime
+}
 
 
 const getMemberShipDetails = (officeId, limit, start) => {

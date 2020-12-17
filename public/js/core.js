@@ -898,13 +898,13 @@ const hasValidSchedule = (schedule) => {
 
 const officeHasMembership = (schedule) => {
     if (!hasValidSchedule(schedule)) return false;
-    if (schedule[0].startTime && schedule[0].endTime) return true;
+    if (schedule[0].startTime || schedule[0].endTime) return true;
     return false;
 }
 
 const isOfficeMembershipExpired = (schedule) => {
     const date = new Date();
-    return Date.parse(date) > schedule[0].endTime
+    return Date.now() > schedule[0].endTime
 }
 
 const getDateDiff = (schedule) => {

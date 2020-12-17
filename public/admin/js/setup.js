@@ -32,7 +32,7 @@ window.addEventListener('load', () => {
 
             const claims = idTokenResult.claims;
 
-            if (claims.support) return redirect('/support');
+            // if (claims.support) return redirect('/support');
             if (claims.admin && claims.admin.length) {
 
                 // if there are multiple offices fill the drawer header with office list
@@ -367,20 +367,7 @@ const getOfficeId = (office) => {
     })
 }
 
-const getOfficeActivity = (officeId) => {
-    return new Promise((resolve, reject) => {
-        getActivity(officeId).then(record => {
 
-            if (record && officeHasMembership(record.schedule) && !isOfficeMembershipExpired(record.schedule)) {
-                return resolve(record);
-            }
-
-            http('GET', `${appKeys.getBaseUrl()}/api/office/${officeId}/activity/${officeId}/`).then(officeActivity => {
-                putActivity(officeActivity).then(resolve)
-            }).catch(reject)
-        })
-    })
-}
 
 
 const officeList = (name) => {
