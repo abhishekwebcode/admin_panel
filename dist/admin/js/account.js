@@ -53,29 +53,22 @@ var init = function init(office, officeId) {
 
       handleFormButtonSubmit(submitBtn, message);
     });
-  });
-  getMemberShipDetails(officeId, 1, 0).then(function (response) {
-    clearError();
-    var subscriptions = response.results;
-
-    if (!subscriptions.length) {
-      document.getElementById('details').innerHTML = '<span>No pamynets found</span>';
-      return;
-    }
-
-    ;
-    handleSubscriptions(subscriptions, office);
-    document.getElementById('show-previous').addEventListener('click', function () {
-      var _this = this;
-
-      clearError();
-      getMemberShipDetails(officeId, response.size, 1).then(function (res) {
-        _this.remove();
-
-        handleSubscriptions(res.results, office);
-      }).catch(handleSubscriptionError);
-    });
-  }).catch(handleSubscriptionError);
+  }); // getMemberShipDetails(officeId, 1, 0).then(response => {
+  //     clearError();
+  //     const subscriptions = response.results
+  //     if (!subscriptions.length) {
+  //         document.getElementById('details').innerHTML = '<span>No pamynets found</span>'
+  //         return
+  //     };
+  //     handleSubscriptions(subscriptions,office)
+  //     document.getElementById('show-previous').addEventListener('click', function(){
+  //         clearError()
+  //         getMemberShipDetails(officeId, response.size, 1).then(res => {
+  //             this.remove()
+  //             handleSubscriptions(res.results,office);
+  //         }).catch(handleSubscriptionError);
+  //     })
+  // }).catch(handleSubscriptionError)
 };
 
 var getMemberShipDetails = function getMemberShipDetails(officeId, limit, start) {

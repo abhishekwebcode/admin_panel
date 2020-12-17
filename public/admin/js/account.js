@@ -55,24 +55,27 @@ const init = (office, officeId) => {
             handleFormButtonSubmit(submitBtn, message);
         })
     });
-    getMemberShipDetails(officeId, 1, 0).then(response => {
-        clearError();
-        const subscriptions = response.results
-        if (!subscriptions.length) {
-            document.getElementById('details').innerHTML = '<span>No pamynets found</span>'
-            return
-        };
-        handleSubscriptions(subscriptions,office)
+  
+  
+    // getMemberShipDetails(officeId, 1, 0).then(response => {
+    //     clearError();
+    //     const subscriptions = response.results
+    //     if (!subscriptions.length) {
+    //         document.getElementById('details').innerHTML = '<span>No pamynets found</span>'
+    //         return
+    //     };
+    //     handleSubscriptions(subscriptions,office)
 
-        document.getElementById('show-previous').addEventListener('click', function(){
-            clearError()
-            getMemberShipDetails(officeId, response.size, 1).then(res => {
-                this.remove()
-                handleSubscriptions(res.results,office);
-            }).catch(handleSubscriptionError);
-        })
+    //     document.getElementById('show-previous').addEventListener('click', function(){
+    //         clearError()
+    //         getMemberShipDetails(officeId, response.size, 1).then(res => {
+    //             this.remove()
+    //             handleSubscriptions(res.results,office);
+    //         }).catch(handleSubscriptionError);
+    //     })
       
-    }).catch(handleSubscriptionError)
+    // }).catch(handleSubscriptionError)
+
 }
 
 
