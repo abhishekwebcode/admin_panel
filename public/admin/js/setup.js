@@ -227,10 +227,7 @@ const initDBErrorHandler = () => {
 }
 
 const startApplication = (office) => {
-    const userProfileLogo = document.getElementById('user-logo');
-    userProfileLogo.addEventListener('click', (ev) => {
-        openProfileBox(ev);
-    })
+ 
     const menu = new mdc.iconButton.MDCIconButtonToggle(document.getElementById('menu'))
     menu.listen('MDCIconButtonToggle:change', function (event) {
         if (drawer.root.classList.contains('mdc-drawer--dismissible')) {
@@ -251,28 +248,33 @@ const startApplication = (office) => {
         // get office activity 
         return getOfficeActivity(officeId)
     }).then(officeActivity => {
-
+        const userProfileLogo = document.getElementById('user-logo');
+        userProfileLogo.addEventListener('click', (ev) => {
+           
+            openProfileBox(ev);
+        })
         appLoader.remove();
+        if(window.location.pathname.split("/").indexOf("account")  > -1 || window.location.pathname.split("/").indexOf("account.html") > -1) {
+            init(office, officeActivity.activityId)
+            return
+        }
+
         const dialog = new mdc.dialog.MDCDialog(document.getElementById('payment-dialog'));
         const dialogBody = document.getElementById('payment-dialog--body');
         const dialogTitle = document.getElementById('my-dialog-title');
-
-        document.getElementById('choose-plan-button').href = `../join.html#payment?office=${encodeURIComponent(office)}`
-
+        document.getElementById('choose-plan-button').href = `../join.html?office=${encodeURIComponent(office)}`;
         const schedule = officeActivity.schedule;
         const isUserFirstContact = officeActivity.attachment['First Contact'].value === firebase.auth().currentUser.phoneNumber;
         if (!hasMultipleOffice) {
             dialog.scrimClickAction = "";
-        }
-
+        };
         if (!officeHasMembership(schedule)) {
             dialogTitle.textContent = 'You are just 1 step away from tracking your employees successfully.';
             dialogBody.textContent = 'Choose your plan to get started.';
-
             officeActivity.geopoint = {
                 latitude: 0,
                 longitude: 0
-            }
+            };
             http('PUT', `${appKeys.getBaseUrl()}/api/activities/update`, officeActivity).then(res => {
                 if (isUserFirstContact) {
                     dialog.open();
@@ -299,6 +301,7 @@ const startApplication = (office) => {
             dialog.open();
             return
         }
+
         init(office, officeActivity.activityId)
     }).catch(console.error)
 

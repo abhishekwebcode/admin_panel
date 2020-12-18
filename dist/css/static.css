@@ -211,7 +211,8 @@ footer .help-footer a {
   font-family: "sans-sarif", Arial, Helvetica, sans-serif !important;
 }
 
-.material-icons {
+.material-icons,
+.mdc-button__icon {
   font-family: 'Material Icons' !important;
 }
 
@@ -2691,5 +2692,62 @@ input:-webkit-autofill:focus {
   margin-left: auto;
   margin-right: auto;
   width: 100%
-  /*whatever width you want*/
+    /*whatever width you want*/
+}
+
+.center-screen {
+  width: 200px;
+  height: 150px;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  margin: auto;
+  max-width: 100%;
+  max-height: 100%;
+  overflow: auto;
+  text-align: center;
+}
+
+.lds-ring {
+  display: inline-block;
+  position: relative;
+  width: 80px;
+  height: 80px;
+}
+
+.lds-ring div {
+  box-sizing: border-box;
+  display: block;
+  position: absolute;
+  width: 64px;
+  height: 64px;
+  margin: 8px;
+  border: 8px solid var(--mdc-theme-primary);
+  border-radius: 50%;
+  animation: lds-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+  border-color: var(--mdc-theme-primary) transparent transparent transparent;
+}
+
+.lds-ring div:nth-child(1) {
+  animation-delay: -0.45s;
+}
+
+.lds-ring div:nth-child(2) {
+  animation-delay: -0.3s;
+}
+
+.lds-ring div:nth-child(3) {
+  animation-delay: -0.15s;
+}
+
+@keyframes lds-ring {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }

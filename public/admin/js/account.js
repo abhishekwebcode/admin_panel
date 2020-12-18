@@ -1,4 +1,3 @@
-
 const init = (office, officeId) => {
 
     const form = document.getElementById('manage-form');
@@ -44,7 +43,7 @@ const init = (office, officeId) => {
             })
         }).then(() => {
             auth.reload();
-            handleFormButtonSubmitSuccess(submitBtn, 'Account updated')
+            // handleFormButtonSubmitSuccess(submitBtn, 'Account updated')
         }).catch(err => {
             submitBtn.classList.remove('active')
             const message = getEmailErrorMessage(err);
@@ -57,58 +56,91 @@ const init = (office, officeId) => {
     });
 
 
-    getOfficeActivity(officeId).then(activity=>{
+    const renewNow = document.getElementById('renew-now');
+    const changePlan = document.getElementById('change-plan');
+
+    getOfficeActivity(officeId).then(activity => {
         const endTime = activity.schedule[0].endTime;
+        console.log("end Time",new Date(endTime))
+        console.log("start Time",new Date(activity.schedule[0].startTime))
+
         // console.log(moment.duration(moment(endTime).diff(moment(),'months',true),'months'))
         document.getElementById('start-date').textContent = moment(activity.schedule[0].startTime).format('DD MMM YYYY')
         document.getElementById('end-date').textContent = moment(endTime).format('DD MMM YYYY')
         document.getElementById('days-left').textContent = getMemberShipEnd(endTime);
-        document.getElementById('status').innerHTML = isOfficeActive(activity) ? "<span class='mdc-theme--success'><i class='material-icons mr-10'>done</i> Active</span>" : "<span class='mdc-theme--error'><i class='material-icons mr-10'>cancel</i> Inactive</span>"
-    }).catch(err=>{
+        document.getElementById('status').innerHTML = isOfficeActive(activity) ? "<span class='mdc-theme--success inline-flex'><i class='material-icons mr-10'>check_circle</i> Active</span>" : "<span class='mdc-theme--error inline-flex'><i class='material-icons mr-10'>cancel</i> Inactive</span>"
+        const tableBody = document.getElementById('payments-table-body')
+        const progressBar = document.getElementById('data-table-progress-bar').MDCLinearProgress;
+    
+        progressBar.open();
+        getMemberShipDetails(officeId).then(response => {
+            console.log(response)
+            // clearError();
+            const subscriptions = response.results;
+            if (!subscriptions.length) {
+                tableBody.innerHTML = "<span class='mdc-theme--error'>No pamynets found</span>"
+                return
+            };
+    
+            
+            tableBody.appendChild(getRow(subscriptions))
+            progressBar.close();
+    
+    
+            const downgradeDialog = document.getElementById('downgrade-plan').MDCDialog
+            const upgradeDialog = document.getElementById('upgrade-plan').MDCDialog
+            const choosePlanDialog = document.getElementById('choose-plan').MDCDialog
+    
+            renewNow.addEventListener('click',()=>{
+                if(subscriptions[0].attachment.Amount.value == 2999) {
+                    const endTime = activity.schedule[0].endTime;
+                    redirect(`/join.html?renew=1&office=${encodeURIComponent(office)}&plan=2999`)
+                    return
+                }
+                upgradeDialog.open()
+    
+            })
+            changePlan.addEventListener('click',()=>{
+                if(subscriptions[0].attachment.Amount.value == 2999) {
+                    downgradeDialog.open();
+                    return
+                }
+                upgradeDialog.open()
+            });
+            [...document.querySelectorAll('.confirmation-button')].forEach(el=>{
+                el.addEventListener('click',()=>{
+                    downgradeDialog.close();
+                    upgradeDialog.close();
+                    choosePlanDialog.open()
+                })
+            });
+            document.getElementById('pay-now').addEventListener('click',()=>{
+                const endTime = activity.schedule[0].endTime;
+                const plans = [2999,999];
+                const ul = document.getElementById('choose-plan-list').MDCList;
+                const amount = plans[ul.selectedIndex]
+                redirect(`/join.html?renew=1&office=${encodeURIComponent(office)}&plan=${amount}`)
+            });
+        })    
+    }).catch(err => {
         console.error(err)
         document.querySelector('#subscription-cont .details').innerHTML = `<p class='mdc-theme--error text-center mdc-typography--headline6'>Try again later</p>`
     })
 
 
-    // getMemberShipDetails(officeId, 1, 0).then(response => {
-    //     clearError();
-    //     const subscriptions = response.results
-    //     if (!subscriptions.length) {
-    //         document.getElementById('details').innerHTML = '<span>No pamynets found</span>'
-    //         return
-    //     };
-    //     handleSubscriptions(subscriptions,office)
-
-    //     document.getElementById('show-previous').addEventListener('click', function(){
-    //         clearError()
-    //         getMemberShipDetails(officeId, response.size, 1).then(res => {
-    //             this.remove()
-    //             handleSubscriptions(res.results,office);
-    //         }).catch(handleSubscriptionError);
-    //     })
-      
-    // }).catch(handleSubscriptionError)
-
 }
 
-const getMemberShipEnd = (endTime) => {
-    const current = moment();
-    const end = moment(endTime);
+const getMemberShipEnd = (endTime,startTime) => {
+    console.log( moment.preciseDiff(endTime,startTime))
+    const diff =  moment.preciseDiff(endTime,startTime,true);
+    return `${diff.years ? `${diff.years} years` :''} ${diff.months ? `${diff.months} months` :''} ${diff.days ? `${diff.days} days` :''} ${diff.hours ? `${diff.hours} hours` : ''} ${diff.minutes ? `${diff.minutes} minutes` : ''}`;
 
-    const years = end.diff(current.valueOf(),'years')
-    current.add(years,'years')
 
-    const months = end.diff(current.valueOf(),'months')
-    current.add(months,'months');
-
-    const days = moment(endTime).diff(current.valueOf(),'days')
-
-    return `${years ? `${years} years` :''} ${months ? `${months} months` :''} ${days ? `${days} days` :''}`
 }
 
 const isOfficeActive = (activity) => {
     const currentTs = Date.now();
-    return activity.status === "CONFIRMED" && currentTs >= activity.schedule[0].start && currentTs <= activity.schedule[0].endTime
+    return activity.status === "CONFIRMED" && currentTs >= activity.schedule[0].startTime && currentTs <= activity.schedule[0].endTime
 }
 
 
@@ -119,10 +151,80 @@ const getMemberShipDetails = (officeId, limit, start) => {
     })
 }
 
-const handleSubscriptions = (subscriptions,office) => {
+const getRow = (subscriptions) => {
+    const frag = document.createDocumentFragment();
+
     subscriptions.forEach(subscription => {
-        document.getElementById('details').appendChild(createSubscriptionCard(subscription,office))
+        if(subscription.attachment.Amount.value == 0) return;
+        const logs = getPaymentLog(subscription.attachment.Logs.value)
+        console.log(logs);
+        const tr = createElement('tr', {
+            className: 'mdc-data-table__row'
+        })
+        const date = createElement('th', {
+            className: 'mdc-data-table__cell',
+            attrs: {
+                scope: "row"
+            },
+            textContent:subscription.attachment['Payment Initiation Date'].value
+        });
+        const duration = createElement('th', {
+            className: 'mdc-data-table__cell',
+            attrs: {
+                scope: "row"
+            },
+            textContent:getMemberShipEnd(subscription.schedule[0].endTime,subscription.schedule[0].startTime)
+        });
+
+        const method = createElement('th', {
+            className: 'mdc-data-table__cell',
+            attrs: {
+                scope: "row"
+            },
+            textContent: logs['paymentMode'] || '-'
+        }); 
+        
+        const creator = createElement('th', {
+            className: 'mdc-data-table__cell',
+            attrs: {
+                scope: "row"
+            },
+            textContent:subscription.creator.displayName
+        }); 
+        const amount = createElement('th', {
+            className: 'mdc-data-table__cell',
+            attrs: {
+                scope: "row"
+            },
+            textContent:subscription.attachment.Amount.value ? formatMoney(String(subscription.attachment.Amount.value)) : 0
+        }); 
+        
+        const status = createElement('th', {
+            className: 'mdc-data-table__cell',
+            attrs: {
+                scope: "row"
+            },
+            innerHTML:logs.txStatus ? "<span class='mdc-theme--success inline-flex'><i class='material-icons mr-10'>check_circle</i> Success</span>" : "<span class='mdc-theme--error inline-flex'><i class='material-icons mr-10'>cancel</i> Failed</span>"
+        }); 
+
+        const receipt = createElement('th', {
+            className: 'mdc-data-table__cell',
+            attrs: {
+                scope: "row"
+            },
+            textContent: ''
+        }); 
+
+        tr.appendChild(date)
+        tr.appendChild(duration)
+        tr.appendChild(method)
+        tr.appendChild(creator)
+        tr.appendChild(amount)
+        tr.appendChild(status)
+        tr.appendChild(receipt)
+        frag.appendChild(tr)
     })
+    return frag;
 }
 const handleSubscriptionError = (error) => {
     document.getElementById('error').textContent = error.message;
@@ -132,65 +234,13 @@ const clearError = () => {
 }
 
 
-
-const createSubscriptionCard = (subscription,office) => {
-
-    const duration = subscription.attachment.Amount.value == 0 ? '3 Days' : getPlanDuration(subscription.schedule[0].startTime, subscription.schedule[0].endTime)
-    const hasExpired = subscription.schedule[0].endTime < Date.now();
-    const isActive =  Date.now() >= subscription.schedule[0].startTime && Date.now() <= subscription.schedule[0].endTime
-    console.log(duration);
-    const card = createElement('div', {
-        className: 'subscription-card mdc-layout-grid__inner'
-    });
-    const paymentLog = getConfirmedPayment(subscription.attachment.Logs.value);
-    
-    card.innerHTML = `
-            <div class='mdc-layout-grid__cell--span-6-desktop mdc-layout-grid__cell--span-4-tablet mdc-layout-grid__cell--span-4-phone'>
-                <div class='plan inline-flex'>Plan: ${formatMoney(String(subscription.attachment.Amount.value))} / ${duration} ${isActive ? `<div class='inline-flex mdc-theme--primary ml-10 change-plan'>
-                <a class="mdc-button" href="../join.html?#payment?office=${office}&extend=1">
-                    <div class="mdc-button__ripple"></div>
-                    <i class="material-icons mdc-button__icon" aria-hidden="true">change_circle</i>
-                    <span class="mdc-button__label">Change plan</span>
-                </a>
-                </div>`:''}</div>
-            </div>
-            <div class='mdc-layout-grid__cell--span-6-desktop mdc-layout-grid__cell--span-4-tablet mdc-layout-grid__cell--span-4-phone'>
-                <div class='expiry-end'>Your ${duration} subscription period ${hasExpired ? '' :' will'} ${hasExpired ? 'expired' :'expire'} on ${moment(subscription.schedule[0].endTime).format("DD MMM YYYY")}</div>
-            </div>
-            <div class='mdc-layout-grid__cell mdc-layout-grid__cell--align-middle'>
-                Date : ${subscription.attachment['Payment Initiation Date'].value}
-            </div>  
-            <div class='mdc-layout-grid__cell mdc-layout-grid__cell--align-middle'>
-                ${paymentLog ? `Mode of payment : ${paymentLog.paymentMode}`  : ''}
-            </div>  
-            <div class='mdc-layout-grid__cell mdc-layout-grid__cell--align-middle'>
-               
-            </div>  
-        `
-    return card;
-}
-
-{/* <button class="mdc-button download-report-btn">
-<div class="mdc-button__ripple"></div>
-<i class="material-icons mdc-button__icon" aria-hidden="true">download</i>
-<div class='straight-loader'></div>
-<span class="mdc-button__label">Download Receipt</span>
-</button> */}
-
 const getPlanDuration = (startDate, endDate) => {
     const start = new Date(startDate);
     const end = new Date(endDate);
     return `${moment([end.getFullYear(),end.getMonth(),end.getDate()]).diff(moment([start.getFullYear(),start.getMonth(),start.getDate()]),"months",true)} months`
 }
 
-const getConfirmedPayment = (logs) => {
-    const paymentLogs = JSON.parse(logs);
-    const keys = Object.keys(paymentLogs);
-    if (!keys.length) return null;
-
-
-    const successKey = keys.filter(key => {
-        return paymentLogs[key].txStatus === "SUCCESS"
-    });
-    return paymentLogs[successKey];
+const getPaymentLog = (logs) => {
+    const log = JSON.parse(logs) || {}
+    return log[Object.keys(log)[0]] || {}
 }

@@ -479,7 +479,7 @@ const createPostData = (postData) => {
  * performs logout operation
  */
 const signOut = () => {
-    firebase.auth().signOut().then(()=>{
+    firebase.auth().signOut().then(() => {
         sessionStorage.removeItem('office')
         sessionStorage.removeItem('officeId')
     }).catch(console.log)
@@ -490,8 +490,8 @@ const signOut = () => {
  * @param {string} pathname 
  */
 const redirect = (pathname) => {
-    
-    window.location = window.location.origin + pathname +(pathname.includes('.html') ? '' :'.html');
+
+    window.location = window.location.origin + pathname + (pathname.includes('.html') ? '' : '.html');
 }
 
 /**
@@ -903,7 +903,6 @@ const officeHasMembership = (schedule) => {
 }
 
 const isOfficeMembershipExpired = (schedule) => {
-    const date = new Date();
     return Date.now() > schedule[0].endTime
 }
 
@@ -947,9 +946,27 @@ const getPincode = () => {
 const phoneFieldInit = (numberField, dropEl) => {
     const input = numberField.input_;
     return intlTelInput(input, {
-      initialCountry: "IN",
-      formatOnDisplay: true,
-      separateDialCode: true,
-      dropdownContainer: dropEl || document.getElementById('country-dom')
+        initialCountry: "IN",
+        formatOnDisplay: true,
+        separateDialCode: true,
+        dropdownContainer: dropEl || document.getElementById('country-dom')
     });
-  };
+};
+
+
+const getDuration = (amount,startTime) => {
+  
+    const d = startTime ? new Date(startTime) : new Date();
+    switch (amount) {
+        case 999:
+            d.setMonth(d.getMonth() + 3);
+            break;
+        case 2999:
+            d.setMonth(d.getMonth() + 12);
+            break;
+        case 0:
+            d.setDate(d.getDate() + 3);
+            break;
+    }
+    return Date.parse(d)
+}

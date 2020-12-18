@@ -175,7 +175,9 @@ const initJourney = () => {
 
     firebase.auth().currentUser.getIdTokenResult().then((idTokenResult) => {
         //if new user start with welcome screen
-        const newOfficeCreation = new URLSearchParams(window.location.search).get('createNew');
+        const searchParams = new URLSearchParams(window.location.search)
+        const newOfficeCreation = searchParams.get('createNew');
+        const isRenew = searchParams.get('renew') && searchParams.get('renew') === "1"
 
         if (!isAdmin(idTokenResult) || newOfficeCreation) {
             onboarding_data_save.set({
@@ -185,17 +187,8 @@ const initJourney = () => {
             initFlow();
             return
         };
-
-        if (!window.location.hash) {
-            redirect('/admin/index.html')
-            return
-        }
-        // for existing offices get office activity and start from choose plan 
-        if(!window.location.hash.split("?")[1])  {
-            redirect('/join.html?createNew=1')
-            return
-        }
-        const office = decodeURIComponent(window.location.hash.split("?")[1].split("=")[1]);
+        const office = searchParams.get('office');
+        journeyContainer.innerHTML = `<div class='center-screen'><div class="lds-ring"><div></div><div></div><div></div><div></div></div><p>Please wait</p></div>`
         http('GET', `${appKeys.getBaseUrl()}/api/office?office=${office}`).then(officeMeta => {
             if (!officeMeta.results.length) {
                 onboarding_data_save.set({
@@ -207,11 +200,10 @@ const initJourney = () => {
             }
             return http('GET', `${appKeys.getBaseUrl()}/api/office/${officeMeta.results[0].officeId}/activity/${officeMeta.results[0].officeId}/`)
         }).then(officeActivity => {
-            //safety check if users goes back to this screen
-            // if (officeHasMembership(officeActivity.schedule) && !isOfficeMembershipExpired(officeActivity.schedule)) {
-            //     redirect('/admin/index.html')
-            // }
+
             localStorage.removeItem('completed');
+            const pstart = officeActivity.schedule[0].endTime;
+            const pend =  searchParams.get('renew') ? getDuration(Number(searchParams.get('plan')),officeActivity.schedule[0].endTime) : '';
             const data = {
                 name: officeActivity.office,
                 officeId: officeActivity.activityId,
@@ -223,16 +215,22 @@ const initJourney = () => {
                 yearOfEstablishment: officeActivity.attachment['Year Of Establishment'] ? officeActivity.attachment['Year Of Establishment'].value : '',
                 template: 'office',
                 companyLogo: officeActivity.attachment['Company Logo'] ? officeActivity.attachment['Company Logo'].value : '',
-                schedule: officeActivity.schedule
+                schedule: officeActivity.schedule,
+                pstart:pstart,
+                pend: pend
             };
 
             onboarding_data_save.set(data);
             onboarding_data_save.set({
                 status: 'COMPLETED'
-            })
-            history.pushState(history.state, null, basePathName + `#choosePlan`)
-            choosePlan();
+            });
 
+            if (isRenew) {
+                handlePayment(data, Number(searchParams.get("plan")))
+                return
+            }
+            history.pushState(history.state, null, basePathName + `#choosePlan`);
+            choosePlan();
         }).catch(console.error)
     })
 }
@@ -570,8 +568,8 @@ function officeFlow(category = onboarding_data_save.get().category) {
         type: 'number',
         label: 'Year',
         id: 'year',
-        maxlength:'4',
-        pattern:"\d*",
+        maxlength: '4',
+        pattern: "\d*",
         autocomplete: 'bday-year',
         max: new Date().getFullYear(),
         value: savedData.yearOfEstablishment || '',
@@ -895,40 +893,55 @@ function choosePlan() {
     nextBtn.element.addEventListener('click', () => {
         nextBtn.setLoader();
         waitTillCustomClaimsUpdate(officeData.name, function () {
+
             const planSelected = plans[ulInit.selectedIndex].amount
-            const duration = getDuration(planSelected)
-            http('POST', `${appKeys.getBaseUrl()}/api/services/payment`, {
-                orderAmount: planSelected,
-                orderCurrency: 'INR',
-                office: officeData.name,
-                paymentType: "membership",
-                paymentMethod: "pgCashfree",
-                phoneNumber: firebase.auth().currentUser.phoneNumber,
-                pstart:1615967891000,
-                pend:duration
-            }).then(res => {
-                onboarding_data_save.set({
-                    plan: planSelected,
-                    orderId: res.orderId || '',
-                    paymentToken: res.paymentToken || '',
-                });
-                if (planSelected == 0) {
-                    history.pushState(history.state, null, basePathName + `${window.location.search}#employees`);
-                    incrementProgress();
-                    addEmployeesFlow();
-                    return
-                }
-                history.pushState(history.state, null, basePathName + `${window.location.search}#payment`)
-                incrementProgress();
-                managePayment();
-            }).catch(err => {
-                showSnacksApiResponse('An error occured. Try again later');
-                nextBtn.removeLoader();
-            })
+            // const pend = new URLSearchParams(window.location.search).get('pend');
+            // const duration = pend ? Number(pend) : getDuration(planSelected);
+            handlePayment(officeData, planSelected);
+
         })
     });
     actionsContainer.appendChild(nextBtn.element);
 }
+
+const handlePayment = (officeData, plan) => {
+    // const pstart = Number(new URLSearchParams(window.location.search).get("pstart")) || Date.now()
+
+    http('POST', `${appKeys.getBaseUrl()}/api/services/payment`, {
+        orderAmount: plan,
+        orderCurrency: 'INR',
+        office: officeData.name,
+        paymentType: "membership",
+        paymentMethod: "pgCashfree",
+        phoneNumber: firebase.auth().currentUser.phoneNumber,
+        pstart: officeData.pstart || Date.now(),
+        pend: officeData.pend || getDuration(plan)
+    }).then(res => {
+        onboarding_data_save.set({
+            plan: plan,
+            orderId: res.orderId || '',
+            paymentToken: res.paymentToken || '',
+        });
+        if (plan == 0) {
+            history.pushState(history.state, null, basePathName + `${window.location.search}#employees`);
+            incrementProgress();
+            addEmployeesFlow();
+            return
+        }
+        history.pushState(history.state, null, basePathName + `${window.location.search}#payment`)
+        incrementProgress();
+        managePayment();
+    }).catch(err => {
+        showSnacksApiResponse('An error occured. Try again later');
+        try {
+            nextBtn.removeLoader();
+        } catch (e) {
+            console.log(e)
+        }
+    })
+
+}
+
 
 const convertNumberToInr = (amount) => {
     return Intl.NumberFormat('en-IN', {
@@ -1176,21 +1189,7 @@ const isCardNumberValid = (cardNumber) => {
     return false;
 }
 
-const getDuration = (amount) => {
-    const d = new Date(1615967891000);
-    switch (amount) {
-        case 999:
-            d.setMonth(d.getMonth() + 3);
-            break;
-        case 2999:
-            d.setMonth(d.getMonth() + 12);
-            break;
-        case 0:
-            d.setDate(d.getDate() + 3);
-            break;
-    }
-    return Date.parse(d)
-}
+
 
 const getPaymentBody = () => {
     const officeData = onboarding_data_save.get();
@@ -1269,6 +1268,9 @@ const showTransactionDialog = (paymentResponse, officeId) => {
     dialogBtn.addEventListener('click', () => {
         dialog.close();
         if (paymentResponse.txStatus === 'SUCCESS') {
+            if (new URLSearchParams(window.location.search).get('renew')) {
+                redirect('/admin/index.html?renewd=1')
+            }
             history.pushState(history.state, null, basePathName + `${window.location.search}#employees`);
             addEmployeesFlow();
             incrementProgress();
@@ -1994,8 +1996,8 @@ const createRequestBodyForOffice = (officeData) => {
  * @returns {Boolean} 
  */
 const isValidYear = (year) => {
-    if(!/^\d+$/.test(year)) return;
-    if(year > new Date().getFullYear() || year < 1800) return;
+    if (!/^\d+$/.test(year)) return;
+    if (year > new Date().getFullYear() || year < 1800) return;
     return true
 }
 

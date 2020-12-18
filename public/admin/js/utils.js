@@ -348,4 +348,3 @@ const isUserActive = (user) => {
         !user.subscriptions.length);
 
 }
-

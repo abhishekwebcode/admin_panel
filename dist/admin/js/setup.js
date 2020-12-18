@@ -26,8 +26,7 @@ window.addEventListener('load', function () {
     drawer = new mdc.drawer.MDCDrawer(document.querySelector(".mdc-drawer"));
     window.mdc.autoInit();
     firebase.auth().currentUser.getIdTokenResult().then(function (idTokenResult) {
-      var claims = idTokenResult.claims;
-      if (claims.support) return redirect('/support');
+      var claims = idTokenResult.claims; // if (claims.support) return redirect('/support');
 
       if (claims.admin && claims.admin.length) {
         // if there are multiple offices fill the drawer header with office list
@@ -245,10 +244,16 @@ var startApplication = function startApplication(office) {
     return getOfficeActivity(officeId);
   }).then(function (officeActivity) {
     appLoader.remove();
+
+    if (window.location.pathname.split("/").indexOf("account") > -1 || window.location.pathname.split("/").indexOf("account.html") > -1) {
+      init(office, officeActivity.activityId);
+      return;
+    }
+
     var dialog = new mdc.dialog.MDCDialog(document.getElementById('payment-dialog'));
     var dialogBody = document.getElementById('payment-dialog--body');
     var dialogTitle = document.getElementById('my-dialog-title');
-    document.getElementById('choose-plan-button').href = "../join.html#payment?office=".concat(encodeURIComponent(office));
+    document.getElementById('choose-plan-button').href = "../join.html?office=".concat(encodeURIComponent(office));
     var schedule = officeActivity.schedule;
     var isUserFirstContact = officeActivity.attachment['First Contact'].value === firebase.auth().currentUser.phoneNumber;
 
@@ -359,20 +364,6 @@ var getOfficeId = function getOfficeId(office) {
         resolve(officeId);
       });
     };
-  });
-};
-
-var getOfficeActivity = function getOfficeActivity(officeId) {
-  return new Promise(function (resolve, reject) {
-    getActivity(officeId).then(function (record) {
-      if (record && officeHasMembership(record.schedule) && !isOfficeMembershipExpired(record.schedule)) {
-        return resolve(record);
-      }
-
-      http('GET', "".concat(appKeys.getBaseUrl(), "/api/office/").concat(officeId, "/activity/").concat(officeId, "/")).then(function (officeActivity) {
-        putActivity(officeActivity).then(resolve);
-      }).catch(reject);
-    });
   });
 };
 
