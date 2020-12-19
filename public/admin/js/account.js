@@ -276,16 +276,13 @@ function createPDF() {
     var sTable = document.getElementById('payment-table').innerHTML;
     // CREATE A WINDOW OBJECT.
     var win = window.open('', '', 'height=700,width=700');
-
     win.document.write('<html><head>');
     win.document.write("<link rel='stylesheet' href='https://unpkg.com/material-components-web@7.0.0/dist/material-components-web.min.css'>")
     win.document.write('</head>');
     win.document.write('<body>');
     win.document.write(sTable);         // THE TABLE CONTENTS INSIDE THE BODY TAG.
     win.document.write('</body></html>');
-
     win.document.close(); 	// CLOSE THE CURRENT WINDOW.
-
     win.print();    // PRINT THE CONTENTS.
 }
 const getPlanDuration = (startDate, endDate) => {

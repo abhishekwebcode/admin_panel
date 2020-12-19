@@ -122,6 +122,16 @@ var init = function init(office, officeId) {
       });
 
       document.getElementById('pay-now').addEventListener('click', function () {
+        if (!auth.displayName) {
+          setHelperInvalid(nameField, 'Please set your name');
+          return;
+        }
+
+        if (!auth.email) {
+          setHelperInvalid(emailField, 'Please set your email');
+          return;
+        }
+
         var endTime = activity.schedule[0].endTime;
         var plans = [2999, 999];
         var ul = document.getElementById('choose-plan-list').MDCList;
@@ -169,8 +179,6 @@ var getRow = function getRow(subscriptions) {
       },
       textContent: subscription.attachment['Payment Initiation Date'].value
     });
-    console.log(new Date(subscription.schedule[0].endTime));
-    console.log(new Date(subscription.schedule[0].startTime));
     var duration = createElement('th', {
       className: 'mdc-data-table__cell',
       attrs: {
@@ -207,11 +215,33 @@ var getRow = function getRow(subscriptions) {
       innerHTML: logs.txStatus ? "<span class='mdc-theme--success inline-flex'><i class='material-icons mr-10'>check_circle</i> Success</span>" : "<span class='mdc-theme--error inline-flex'><i class='material-icons mr-10'>cancel</i> Failed</span>"
     });
     var receipt = createElement('th', {
-      className: 'mdc-data-table__cell',
+      className: 'mdc-data-table__cell receipt-down',
       attrs: {
         scope: "row"
       },
-      textContent: ''
+      innerHTML: '<i class="material-icons">download</i>'
+    });
+    receipt.addEventListener('click', function () {
+      document.getElementById('txn-status').textContent = logs.txStatus;
+      document.getElementById('txn-order-id').textContent = logs.orderId;
+      document.getElementById('txn-amount').textContent = logs.orderAmount;
+      document.getElementById('txn-ref-id').textContent = logs.referenceId;
+      document.getElementById('txn-mode').textContent = logs.paymentMode;
+      document.getElementById('txn-msg').textContent = logs.txMsg;
+      document.getElementById('txn-time').textContent = logs.txTime;
+      createPDF(); // html2canvas(document.getElementById('payment-table'), {
+      //     onrendered: function (canvas) {
+      //         var data = canvas.toDataURL();
+      //         console.log(data)
+      //         var docDefinition = {
+      //             content: [{
+      //                 image: data,
+      //                 width: 500
+      //             }]
+      //         };
+      //         pdfMake.createPdf(docDefinition).download("Table.pdf");
+      //     }
+      // });
     });
     tr.appendChild(date);
     tr.appendChild(duration);
@@ -232,6 +262,22 @@ var handleSubscriptionError = function handleSubscriptionError(error) {
 var clearError = function clearError() {
   document.getElementById('error').textContent = '';
 };
+
+function createPDF() {
+  var sTable = document.getElementById('payment-table').innerHTML; // CREATE A WINDOW OBJECT.
+
+  var win = window.open('', '', 'height=700,width=700');
+  win.document.write('<html><head>');
+  win.document.write("<link rel='stylesheet' href='https://unpkg.com/material-components-web@7.0.0/dist/material-components-web.min.css'>");
+  win.document.write('</head>');
+  win.document.write('<body>');
+  win.document.write(sTable); // THE TABLE CONTENTS INSIDE THE BODY TAG.
+
+  win.document.write('</body></html>');
+  win.document.close(); // CLOSE THE CURRENT WINDOW.
+
+  win.print(); // PRINT THE CONTENTS.
+}
 
 var getPlanDuration = function getPlanDuration(startDate, endDate) {
   var start = new Date(startDate);

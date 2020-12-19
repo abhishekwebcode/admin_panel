@@ -330,6 +330,50 @@
                             </table>
                         </div>
                     </div>
+                    <div class="hidden" id="payment-table">
+                        <div class="mdc-data-table full-width" data-mdc-auto-init="MDCDataTable">
+                            <div class="mdc-data-table__table-container">
+                              <table class="mdc-data-table__table" aria-label="Transaction table">
+                                <thead>
+                                  <tr class="mdc-data-table__header-row">
+                                  </tr>
+                                </thead>
+                                <tbody class="mdc-data-table__content">
+                                  <tr class="mdc-data-table__row">
+                                    <th class="mdc-data-table__cell" scope="row" >Transaction status</th>
+                                    <td class="mdc-data-table__cell" id="txn-status"></td>
+                                   
+                                  </tr>
+                                  <tr class="mdc-data-table__row">
+                                    <th class="mdc-data-table__cell" scope="row">Order ID</th>
+                                    <th class="mdc-data-table__cell" scope="row" id="txn-order-id"></th>
+                                  </tr>
+                                  <tr class="mdc-data-table__row">
+                                    <th class="mdc-data-table__cell" scope="row">Amount</th>
+                                    <td class="mdc-data-table__cell" id="txn-amount"></td>
+                                  
+                                  </tr>
+                                  <tr class="mdc-data-table__row">
+                                    <th class="mdc-data-table__cell" scope="row" >Reference Id</th>
+                                    <td class="mdc-data-table__cell" id="txn-ref-id"></td>
+                                  </tr>
+                                  <tr class="mdc-data-table__row">
+                                    <th class="mdc-data-table__cell" scope="row" >Payment mode</th>
+                                    <td class="mdc-data-table__cell" id="txn-mode" ></td>
+                                  </tr>
+                                  <tr class="mdc-data-table__row">
+                                    <th class="mdc-data-table__cell" scope="row" >Transaction message</th>
+                                    <td class="mdc-data-table__cell" id="txn-msg" ></td>
+                                  </tr>
+                                  <tr class="mdc-data-table__row">
+                                    <th class="mdc-data-table__cell" scope="row" >Time</th>
+                                    <td class="mdc-data-table__cell" id="txn-time"></td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                    </div>
                 </div>
             </div>
 
@@ -471,9 +515,11 @@
     <script src="./js/account.js"></script>
     <script src="./js/moment.min.js"></script>
     <script src="./js/moment-precise-range.js"></script>
-    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.2.0/jspdf.umd.min.js"></script> -->
     <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
-
+    <!-- <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.22/pdfmake.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script> -->
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.2.0/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.13/jspdf.plugin.autotable.min.js" integrity="sha512-AtJGnumoR/L4JbSw/HzZxkPbfr+XiXYxoEPBsP6Q+kNo9zh4gyrvg25eK2eSsp1VAEAP1XsMf2M984pK/geNXw==" crossorigin="anonymous"></script> -->
 </body>
 
 </html>
