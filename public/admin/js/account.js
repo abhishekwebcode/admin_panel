@@ -55,33 +55,6 @@ const init = (office, officeId) => {
             handleFormButtonSubmit(submitBtn, message);
         })
     });
-<<<<<<< HEAD
-  
-  
-    // getMemberShipDetails(officeId, 1, 0).then(response => {
-    //     clearError();
-    //     const subscriptions = response.results
-    //     if (!subscriptions.length) {
-    //         document.getElementById('details').innerHTML = '<span>No pamynets found</span>'
-    //         return
-    //     };
-    //     handleSubscriptions(subscriptions,office)
-
-    //     document.getElementById('show-previous').addEventListener('click', function(){
-    //         clearError()
-    //         getMemberShipDetails(officeId, response.size, 1).then(res => {
-    //             this.remove()
-    //             handleSubscriptions(res.results,office);
-    //         }).catch(handleSubscriptionError);
-    //     })
-      
-    // }).catch(handleSubscriptionError)
-
-}
-
-
-
-=======
 
 
     const renewNow = document.getElementById('renew-now');
@@ -184,7 +157,6 @@ const isOfficeActive = (activity) => {
     return activity.status === "CONFIRMED" && currentTs >= activity.schedule[0].startTime && currentTs <= activity.schedule[0].endTime
 }
 
->>>>>>> subs
 
 const getMemberShipDetails = (officeId, limit, start) => {
     return new Promise((resolve, reject) => {
@@ -193,12 +165,6 @@ const getMemberShipDetails = (officeId, limit, start) => {
     })
 }
 
-<<<<<<< HEAD
-const handleSubscriptions = (subscriptions,office) => {
-    subscriptions.forEach(subscription => {
-        document.getElementById('details').appendChild(createSubscriptionCard(subscription,office))
-    })
-=======
 const getRow = (subscriptions) => {
     const frag = document.createDocumentFragment();
 
@@ -299,7 +265,6 @@ const getRow = (subscriptions) => {
         frag.appendChild(tr)
     })
     return frag;
->>>>>>> subs
 }
 const handleSubscriptionError = (error) => {
     document.getElementById('error').textContent = error.message;
@@ -308,54 +273,6 @@ const clearError = () => {
     document.getElementById('error').textContent = ''
 }
 
-<<<<<<< HEAD
-
-
-const createSubscriptionCard = (subscription,office) => {
-
-    const duration = subscription.attachment.Amount.value == 0 ? '3 Days' : getPlanDuration(subscription.schedule[0].startTime, subscription.schedule[0].endTime)
-    const hasExpired = subscription.schedule[0].endTime < Date.now();
-    const isActive =  Date.now() >= subscription.schedule[0].startTime && Date.now() <= subscription.schedule[0].endTime
-    console.log(duration);
-    const card = createElement('div', {
-        className: 'subscription-card mdc-layout-grid__inner'
-    });
-    const paymentLog = getConfirmedPayment(subscription.attachment.Logs.value);
-    
-    card.innerHTML = `
-            <div class='mdc-layout-grid__cell--span-6-desktop mdc-layout-grid__cell--span-4-tablet mdc-layout-grid__cell--span-4-phone'>
-                <div class='plan inline-flex'>Plan: ${formatMoney(String(subscription.attachment.Amount.value))} / ${duration} ${isActive ? `<div class='inline-flex mdc-theme--primary ml-10 change-plan'>
-                <a class="mdc-button" href="../join.html?#payment?office=${office}&extend=1">
-                    <div class="mdc-button__ripple"></div>
-                    <i class="material-icons mdc-button__icon" aria-hidden="true">change_circle</i>
-                    <span class="mdc-button__label">Change plan</span>
-                </a>
-                </div>`:''}</div>
-            </div>
-            <div class='mdc-layout-grid__cell--span-6-desktop mdc-layout-grid__cell--span-4-tablet mdc-layout-grid__cell--span-4-phone'>
-                <div class='expiry-end'>Your ${duration} subscription period ${hasExpired ? '' :' will'} ${hasExpired ? 'expired' :'expire'} on ${moment(subscription.schedule[0].endTime).format("DD MMM YYYY")}</div>
-            </div>
-            <div class='mdc-layout-grid__cell mdc-layout-grid__cell--align-middle'>
-                Date : ${subscription.attachment['Payment Initiation Date'].value}
-            </div>  
-            <div class='mdc-layout-grid__cell mdc-layout-grid__cell--align-middle'>
-                ${paymentLog ? `Mode of payment : ${paymentLog.paymentMode}`  : ''}
-            </div>  
-            <div class='mdc-layout-grid__cell mdc-layout-grid__cell--align-middle'>
-               
-            </div>  
-        `
-    return card;
-}
-
-{/* <button class="mdc-button download-report-btn">
-<div class="mdc-button__ripple"></div>
-<i class="material-icons mdc-button__icon" aria-hidden="true">download</i>
-<div class='straight-loader'></div>
-<span class="mdc-button__label">Download Receipt</span>
-</button> */}
-
-=======
 function createPDF() {
     var sTable = document.getElementById('payment-table').innerHTML;
     // CREATE A WINDOW OBJECT.
@@ -369,27 +286,13 @@ function createPDF() {
     win.document.close(); 	// CLOSE THE CURRENT WINDOW.
     win.print();    // PRINT THE CONTENTS.
 }
->>>>>>> subs
 const getPlanDuration = (startDate, endDate) => {
     const start = new Date(startDate);
     const end = new Date(endDate);
     return `${moment([end.getFullYear(),end.getMonth(),end.getDate()]).diff(moment([start.getFullYear(),start.getMonth(),start.getDate()]),"months",true)} months`
 }
 
-<<<<<<< HEAD
-const getConfirmedPayment = (logs) => {
-    const paymentLogs = JSON.parse(logs);
-    const keys = Object.keys(paymentLogs);
-    if (!keys.length) return null;
-
-
-    const successKey = keys.filter(key => {
-        return paymentLogs[key].txStatus === "SUCCESS"
-    });
-    return paymentLogs[successKey];
-=======
 const getPaymentLog = (logs) => {
     const log = JSON.parse(logs) || {}
     return log[Object.keys(log)[0]] || {}
->>>>>>> subs
 }
