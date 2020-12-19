@@ -194,7 +194,9 @@ var initJourney = function initJourney() {
   });
   firebase.auth().currentUser.getIdTokenResult().then(function (idTokenResult) {
     //if new user start with welcome screen
-    var newOfficeCreation = new URLSearchParams(window.location.search).get('createNew');
+    var searchParams = new URLSearchParams(window.location.search);
+    var newOfficeCreation = searchParams.get('createNew');
+    var isRenew = searchParams.get('renew') && searchParams.get('renew') === "1";
 
     if (!isAdmin(idTokenResult) || newOfficeCreation) {
       onboarding_data_save.set({
@@ -206,19 +208,8 @@ var initJourney = function initJourney() {
     }
 
     ;
-
-    if (!window.location.hash) {
-      redirect('/admin/index.html');
-      return;
-    } // for existing offices get office activity and start from choose plan 
-
-
-    if (!window.location.hash.split("?")[1]) {
-      redirect('/join.html?createNew=1');
-      return;
-    }
-
-    var office = decodeURIComponent(window.location.hash.split("?")[1].split("=")[1]);
+    var office = searchParams.get('office');
+    journeyContainer.innerHTML = "<div class='center-screen'><div class=\"lds-ring\"><div></div><div></div><div></div><div></div></div><p>Please wait</p></div>";
     http('GET', "".concat(appKeys.getBaseUrl(), "/api/office?office=").concat(office)).then(function (officeMeta) {
       if (!officeMeta.results.length) {
         onboarding_data_save.set({
@@ -231,10 +222,6 @@ var initJourney = function initJourney() {
 
       return http('GET', "".concat(appKeys.getBaseUrl(), "/api/office/").concat(officeMeta.results[0].officeId, "/activity/").concat(officeMeta.results[0].officeId, "/"));
     }).then(function (officeActivity) {
-      //safety check if users goes back to this screen
-      // if (officeHasMembership(officeActivity.schedule) && !isOfficeMembershipExpired(officeActivity.schedule)) {
-      //     redirect('/admin/index.html')
-      // }
       localStorage.removeItem('completed');
       var data = {
         name: officeActivity.office,
@@ -247,16 +234,40 @@ var initJourney = function initJourney() {
         yearOfEstablishment: officeActivity.attachment['Year Of Establishment'] ? officeActivity.attachment['Year Of Establishment'].value : '',
         template: 'office',
         companyLogo: officeActivity.attachment['Company Logo'] ? officeActivity.attachment['Company Logo'].value : '',
-        schedule: officeActivity.schedule
+        schedule: officeActivity.schedule,
+        endTime: officeActivity.schedule[0].endTime,
+        pstart: getPaymentStart(officeActivity.schedule[0].endTime),
+        pend: getPaymentEnd(officeActivity.schedule[0].endTime)
       };
       onboarding_data_save.set(data);
       onboarding_data_save.set({
         status: 'COMPLETED'
       });
+
+      if (isRenew) {
+        handlePayment(data, Number(searchParams.get("plan")));
+        return;
+      }
+
+      ;
       history.pushState(history.state, null, basePathName + "#choosePlan");
       choosePlan();
     }).catch(console.error);
   });
+};
+
+var getPaymentStart = function getPaymentStart(endTime) {
+  var currentTs = Date.now();
+  if (currentTs > endTime) return currentTs;
+  return endTime;
+};
+
+var getPaymentEnd = function getPaymentEnd(endTime) {
+  var searchParams = new URLSearchParams(window.location.search);
+  var currentTs = Date.now();
+  var time = currentTs > endTime ? currentTs : endTime;
+  var duration = searchParams.get('renew') ? getDuration(Number(searchParams.get('plan')), time) : '';
+  return duration;
 };
 
 var nextButton = function nextButton() {
@@ -741,6 +752,7 @@ function officeFlow() {
           officeData.officeId = res.officeId;
         }
 
+        officeData.pstart = Date.now();
         officeData.name = res.office;
         handleOfficeRequestSuccess(officeData);
 
@@ -888,40 +900,50 @@ function choosePlan() {
     nextBtn.setLoader();
     waitTillCustomClaimsUpdate(officeData.name, function () {
       var planSelected = plans[ulInit.selectedIndex].amount;
-      var duration = getDuration(planSelected);
-      http('POST', "".concat(appKeys.getBaseUrl(), "/api/services/payment"), {
-        orderAmount: planSelected,
-        orderCurrency: 'INR',
-        office: officeData.name,
-        paymentType: "membership",
-        paymentMethod: "pgCashfree",
-        extendDuration: duration,
-        phoneNumber: firebase.auth().currentUser.phoneNumber
-      }).then(function (res) {
-        onboarding_data_save.set({
-          plan: planSelected,
-          orderId: res.orderId || '',
-          paymentToken: res.paymentToken || ''
-        });
-
-        if (planSelected == 0) {
-          history.pushState(history.state, null, basePathName + "".concat(window.location.search, "#employees"));
-          incrementProgress();
-          addEmployeesFlow();
-          return;
-        }
-
-        history.pushState(history.state, null, basePathName + "".concat(window.location.search, "#payment"));
-        incrementProgress();
-        managePayment();
-      }).catch(function (err) {
-        showSnacksApiResponse('An error occured. Try again later');
-        nextBtn.removeLoader();
-      });
+      officeData.pend = getDuration(planSelected, officeData.pstart);
+      handlePayment(officeData, planSelected);
     });
   });
   actionsContainer.appendChild(nextBtn.element);
 }
+
+var handlePayment = function handlePayment(officeData, plan) {
+  http('POST', "".concat(appKeys.getBaseUrl(), "/api/services/payment"), {
+    orderAmount: plan,
+    orderCurrency: 'INR',
+    office: officeData.name,
+    paymentType: "membership",
+    paymentMethod: "pgCashfree",
+    phoneNumber: firebase.auth().currentUser.phoneNumber,
+    pstart: officeData.pstart,
+    pend: officeData.pend
+  }).then(function (res) {
+    onboarding_data_save.set({
+      plan: plan,
+      orderId: res.orderId || '',
+      paymentToken: res.paymentToken || ''
+    });
+
+    if (plan == 0) {
+      history.pushState(history.state, null, basePathName + "".concat(window.location.search, "#employees"));
+      incrementProgress();
+      addEmployeesFlow();
+      return;
+    }
+
+    history.pushState(history.state, null, basePathName + "".concat(window.location.search, "#payment"));
+    incrementProgress();
+    managePayment();
+  }).catch(function (err) {
+    showSnacksApiResponse('An error occured. Try again later');
+
+    try {
+      nextBtn.removeLoader();
+    } catch (e) {
+      console.log(e);
+    }
+  });
+};
 
 var convertNumberToInr = function convertNumberToInr(amount) {
   return Intl.NumberFormat('en-IN', {
@@ -1178,26 +1200,6 @@ var isCardNumberValid = function isCardNumberValid(cardNumber) {
   return false;
 };
 
-var getDuration = function getDuration(amount) {
-  var d = new Date();
-
-  switch (amount) {
-    case 999:
-      d.setMonth(d.getMonth() + 3);
-      break;
-
-    case 2999:
-      d.setMonth(d.getMonth() + 12);
-      break;
-
-    case 0:
-      d.setDate(d.getDate() + 3);
-      break;
-  }
-
-  return Date.parse(d);
-};
-
 var getPaymentBody = function getPaymentBody() {
   var officeData = onboarding_data_save.get();
   return {
@@ -1276,6 +1278,10 @@ var showTransactionDialog = function showTransactionDialog(paymentResponse, offi
     dialog.close();
 
     if (paymentResponse.txStatus === 'SUCCESS') {
+      if (new URLSearchParams(window.location.search).get('renew')) {
+        redirect('/admin/index.html?renewd=1');
+      }
+
       history.pushState(history.state, null, basePathName + "".concat(window.location.search, "#employees"));
       addEmployeesFlow();
       incrementProgress();

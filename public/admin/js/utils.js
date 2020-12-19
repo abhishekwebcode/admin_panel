@@ -21,6 +21,7 @@ const getActivity = (activityId) => {
     })
 }
 
+
 const putActivity = (activity) => {
     return new Promise((resolve, reject) => {
         const tx = window.database.transaction("activities", "readwrite");
@@ -28,6 +29,20 @@ const putActivity = (activity) => {
         store.put(activity).onsuccess = function () {
             return resolve(activity)
         }
+    })
+}
+const getOfficeActivity = (officeId) => {
+    return new Promise((resolve, reject) => {
+        getActivity(officeId).then(record => {
+
+            if (record && officeHasMembership(record.schedule) && !isOfficeMembershipExpired(record.schedule)) {
+                return resolve(record);
+            }
+
+            http('GET', `${appKeys.getBaseUrl()}/api/office/${officeId}/activity/${officeId}/`).then(officeActivity => {
+                putActivity(officeActivity).then(resolve)
+            }).catch(reject)
+        })
     })
 }
 
@@ -333,4 +348,3 @@ const isUserActive = (user) => {
         !user.subscriptions.length);
 
 }
-

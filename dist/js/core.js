@@ -858,13 +858,12 @@ var hasValidSchedule = function hasValidSchedule(schedule) {
 
 var officeHasMembership = function officeHasMembership(schedule) {
   if (!hasValidSchedule(schedule)) return false;
-  if (schedule[0].startTime && schedule[0].endTime) return true;
+  if (schedule[0].startTime || schedule[0].endTime) return true;
   return false;
 };
 
 var isOfficeMembershipExpired = function isOfficeMembershipExpired(schedule) {
-  var date = new Date();
-  return Date.parse(date) > schedule[0].endTime;
+  return Date.now() > schedule[0].endTime;
 };
 
 var getDateDiff = function getDateDiff(schedule) {
@@ -914,4 +913,24 @@ var phoneFieldInit = function phoneFieldInit(numberField, dropEl) {
     separateDialCode: true,
     dropdownContainer: dropEl || document.getElementById('country-dom')
   });
+};
+
+var getDuration = function getDuration(amount, startTime) {
+  var d = startTime ? new Date(startTime) : new Date();
+
+  switch (amount) {
+    case 999:
+      d.setMonth(d.getMonth() + 3);
+      break;
+
+    case 2999:
+      d.setMonth(d.getMonth() + 12);
+      break;
+
+    case 0:
+      d.setDate(d.getDate() + 3);
+      break;
+  }
+
+  return Date.parse(d);
 };

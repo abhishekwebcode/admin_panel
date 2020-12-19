@@ -33,6 +33,21 @@
     font-weight: 500;
 }
 
+<<<<<<< HEAD
+=======
+.form-submit .straight-loader {
+    display: none;
+    color: white;
+    margin-top: -10px;
+}
+.form-submit.active .straight-loader {
+    display: block;
+}
+.form-submit.active .mdc-button__label {
+    display: none;
+}
+
+>>>>>>> subs
 @media (min-width:840px) {
     .form-submit {
         height: 56px;
@@ -57,6 +72,7 @@ form .mdc-text-field {
     font-weight: 600;
     color: rgb(102 102 102)
 }
+<<<<<<< HEAD
 #subscription-cont, .account-form {
     border: 1px solid #ccc;
     border-radius: 5px;
@@ -66,6 +82,9 @@ form .mdc-text-field {
 #subscription-cont hr {
     margin: 0px;
 }
+=======
+
+>>>>>>> subs
 .plan {
     font-weight: 500;
     color: rgb(102 102 102);
@@ -94,4 +113,71 @@ form .mdc-text-field {
     color: rgb(102 102 102);
     font-weight: 600;
     cursor: pointer;
+<<<<<<< HEAD
+=======
+}
+.subscription-details .details {
+    padding: 16px 16px 0px 16px;
+}
+.subscription-details .renew-buttons, .mdc-data-table{
+    width: 100%;
+}
+.subscription-details .inline-flex .marign-left{
+    margin-left: auto;
+    color: gray;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.subscription-grid {
+    padding-top: 20px;
+}
+.subscription-grid  .label{
+    color: gray;
+    font-size: 18px;
+
+}
+.subscription-grid  .heading{
+   font-weight: 600;
+   margin-top: 5px;
+}
+.mdc-linear-progress.mdc-linear-progress--closed {
+    display: none;
+}
+.mdc-linear-progress {
+    display: block;
+}
+
+.highlight-plan {
+    color: orange;
+}
+
+.plan-dialog {
+    text-align: center;   
+}
+.plan-dialog .mdc-dialog__surface {
+    min-width: 480px;
+}
+.plan-dialog .mdc-dialog__title {
+    font-weight: 600;
+    text-align: left;
+}
+.plan-dialog .content {
+    color: black;
+}
+.confirmation-button--positive {
+    min-width: 150px;
+}
+.confirmation-button--negative {
+    color: gray;
+}
+.lottie-player {
+    width: 300px; 
+    height: 300px;
+    margin: 0 auto;
+
+}
+.receipt-down {
+    cursor: pointer;
+>>>>>>> subs
 }

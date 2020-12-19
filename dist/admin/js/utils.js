@@ -36,6 +36,20 @@ var putActivity = function putActivity(activity) {
   });
 };
 
+var getOfficeActivity = function getOfficeActivity(officeId) {
+  return new Promise(function (resolve, reject) {
+    getActivity(officeId).then(function (record) {
+      if (record && officeHasMembership(record.schedule) && !isOfficeMembershipExpired(record.schedule)) {
+        return resolve(record);
+      }
+
+      http('GET', "".concat(appKeys.getBaseUrl(), "/api/office/").concat(officeId, "/activity/").concat(officeId, "/")).then(function (officeActivity) {
+        putActivity(officeActivity).then(resolve);
+      }).catch(reject);
+    });
+  });
+};
+
 var handleProfileDetails = function handleProfileDetails(officeId) {
   getCompanyDetails(officeId, updateCompanyProfile, console.error);
 };

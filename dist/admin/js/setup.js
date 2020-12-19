@@ -218,10 +218,6 @@ var initDBErrorHandler = function initDBErrorHandler() {
 };
 
 var startApplication = function startApplication(office) {
-  var userProfileLogo = document.getElementById('user-logo');
-  userProfileLogo.addEventListener('click', function (ev) {
-    openProfileBox(ev);
-  });
   var menu = new mdc.iconButton.MDCIconButtonToggle(document.getElementById('menu'));
   menu.listen('MDCIconButtonToggle:change', function (event) {
     if (drawer.root.classList.contains('mdc-drawer--dismissible')) {
@@ -244,17 +240,29 @@ var startApplication = function startApplication(office) {
     // get office activity 
     return getOfficeActivity(officeId);
   }).then(function (officeActivity) {
+    var userProfileLogo = document.getElementById('user-logo');
+    userProfileLogo.addEventListener('click', function (ev) {
+      openProfileBox(ev);
+    });
     appLoader.remove();
+
+    if (window.location.pathname.split("/").indexOf("account") > -1 || window.location.pathname.split("/").indexOf("account.html") > -1) {
+      init(office, officeActivity.activityId);
+      return;
+    }
+
     var dialog = new mdc.dialog.MDCDialog(document.getElementById('payment-dialog'));
     var dialogBody = document.getElementById('payment-dialog--body');
     var dialogTitle = document.getElementById('my-dialog-title');
-    document.getElementById('choose-plan-button').href = "../join.html#payment?office=".concat(encodeURIComponent(office));
+    document.getElementById('choose-plan-button').href = "../join.html?office=".concat(encodeURIComponent(office));
     var schedule = officeActivity.schedule;
     var isUserFirstContact = officeActivity.attachment['First Contact'].value === firebase.auth().currentUser.phoneNumber;
 
     if (!hasMultipleOffice) {
       dialog.scrimClickAction = "";
     }
+
+    ;
 
     if (!officeHasMembership(schedule)) {
       dialogTitle.textContent = 'You are just 1 step away from tracking your employees successfully.';
@@ -359,20 +367,6 @@ var getOfficeId = function getOfficeId(office) {
         resolve(officeId);
       });
     };
-  });
-};
-
-var getOfficeActivity = function getOfficeActivity(officeId) {
-  return new Promise(function (resolve, reject) {
-    getActivity(officeId).then(function (record) {
-      if (record && officeHasMembership(record.schedule) && !isOfficeMembershipExpired(record.schedule)) {
-        return resolve(record);
-      }
-
-      http('GET', "".concat(appKeys.getBaseUrl(), "/api/office/").concat(officeId, "/activity/").concat(officeId, "/")).then(function (officeActivity) {
-        putActivity(officeActivity).then(resolve);
-      }).catch(reject);
-    });
   });
 };
 

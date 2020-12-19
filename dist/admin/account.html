@@ -74,14 +74,14 @@
                                 </a>
                             </div>
                         </div>
-                        <div class="new-office pt">
+                        <!-- <div class="new-office pt">
                             <a class="mdc-button mdc-button--outlined" href="../join.html?createNew=1"
                                 data-mdc-auto-init="MDCRipple">
                                 <div class="mdc-button__ripple"></div>
                                 <i class="material-icons mdc-button__icon" aria-hidden="true">add</i>
                                 <span class="mdc-button__label">Add a new company</span>
                             </a>
-                        </div>
+                        </div> -->
                         <div class="sign-out">
                             <button class="mdc-button mdc-button--outlined" id="signout" data-mdc-auto-init="MDCRipple"
                                 onclick="signOut()">
@@ -172,7 +172,6 @@
             <div class="pt-20  account-section">
 
                 <form class="container" id="manage-form">
-               
                     <div class="account-form mdc-elevation--z2">
                         <div class='inline-flex account-card--heading'>
                             <i class="material-icons mr-10">edit</i>
@@ -180,7 +179,8 @@
                         </div>
                         <div class="edit-profile">
                             <div class="mdc-layout-grid__inner">
-                                <div class="mdc-layout-grid__cell mdc-layout-grid__cell--span-8-tablet mdc-layout-grid__cell--span-2-desktop">
+                                <div
+                                    class="mdc-layout-grid__cell mdc-layout-grid__cell--span-8-tablet mdc-layout-grid__cell--span-2-desktop">
                                     <div class="account-photo">
                                         <input type="file" accept="image/jpg" class="hidden" name="image-upload"
                                             id="image-upload">
@@ -209,8 +209,8 @@
                                     <label
                                         class="mdc-text-field mdc-text-field--outlined mdc-text-field--label-floating mdc-text-field--no-label"
                                         id="account-email">
-                                        <input class="mdc-text-field__input" placeholder="" required autocomplete="email"
-                                            type="email">
+                                        <input class="mdc-text-field__input" placeholder="" required
+                                            autocomplete="email" type="email">
                                         <span class="mdc-notched-outline mdc-notched-outline--no-label">
                                             <span class="mdc-notched-outline__leading"></span>
                                             <span class="mdc-notched-outline__trailing"></span>
@@ -221,57 +221,268 @@
                                             aria-hidden="true"></div>
                                     </div>
                                 </div>
-                                <div class="mdc-layout-grid__cell mdc-layout-grid__cell--span-8-tablet mdc-layout-grid__cell--span-2-desktop mdc-layout-grid__cell--align-middle">
-                                    
-                                        <button class="mdc-button mdc-button--raised form-submit" data-mdc-auto-init="MDCRipple"
-                                            type="submit">
-                                            <div class="mdc-button__ripple"></div>
-                                            <div class="straight-loader"></div>
-                                            <span class="mdc-button__label">SAVE</span>
-                                        </button>
+                                <div
+                                    class="mdc-layout-grid__cell mdc-layout-grid__cell--span-8-tablet mdc-layout-grid__cell--span-2-desktop mdc-layout-grid__cell--align-middle">
+
+                                    <button class="mdc-button mdc-button--raised form-submit"
+                                        data-mdc-auto-init="MDCRipple" type="submit">
+                                        <div class="mdc-button__ripple"></div>
+                                        <div class="straight-loader"></div>
+                                        <span class="mdc-button__label">SAVE</span>
+                                    </button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </form>
-                <!-- <div id="subscription-cont" class="mt-20  mdc-elevation--z2">
+                <div id="subscription-cont" class="mt-20  mdc-elevation--z2">
                     <div class='subscription-details'>
                         <div class='inline-flex account-card--heading'>
                             <i class="material-icons mr-10">card_membership</i>
                             <div class='heading'>SUBSCRIPTION DETAILS</div>
                         </div>
-                        <div id="details"></div>
-                        <div class='show-more text-center' id="show-previous">View Previous Details
+                        <div class="details">
+                            <div class="inline-flex renew-buttons">
+                                <button class="mdc-button mdc-button--raised" id="renew-now">
+                                    <div class="mdc-button__ripple"></div>
+                                    <i class="material-icons mdc-button__icon" aria-hidden="true">change_circle</i>
+                                    <span class="mdc-button__label">Renew Now</span>
+                                </button>
+                                <div class="marign-left">
+                                    <span class="change-plan" id="change-plan">Change plan</span>
+                                </div>
+                            </div>
+                            <div class="mdc-layout-grid__inner subscription-grid">
+                                <div class="mdc-layout-grid__cell--span-3">
+                                    <div class="mdc-typography--headline6 label">Joined Date</div>
+                                    <p class="mdc-typography--headline5 heading" id="start-date">
+
+                                    </p>
+                                </div>
+                                <div class="mdc-layout-grid__cell--span-3">
+                                    <div class="mdc-typography--headline6 label">Subscription End Date</div>
+                                    <p class="mdc-typography--headline5  heading" id="end-date">
+
+                                    </p>
+                                </div>
+                                <div class="mdc-layout-grid__cell--span-3">
+                                    <div class="mdc-typography--headline6 label">Days left</div>
+                                    <p class="mdc-typography--headline5 heading" id="days-left">
+
+                                    </p>
+                                </div>
+                                <div class="mdc-layout-grid__cell--span-3">
+                                    <div class="mdc-typography--headline6 label">Status</div>
+                                    <p class="mdc-typography--headline5 heading" id="status">
+                                    </p>
+                                </div>
+                            </div>
                         </div>
-                        <span id='error' class='mdc-theme--error'></span>
                     </div>
-                </div> -->
+                </div>
+                <div class="mt-20  mdc-elevation--z2">
+                    <div class='payment-details'>
+                        <div class='inline-flex account-card--heading'>
+                            <i class="material-icons mr-10">card_membership</i>
+                            <div class='heading'>PAYMENT DETAILS</div>
+                        </div>
+                    </div>
+                    <div role="progressbar" class="mdc-linear-progress mdc-linear-progress--indeterminate"
+                        aria-label="Example Progress Bar" aria-valuemin="0" aria-valuemax="1" aria-valuenow="0"
+                        data-mdc-auto-init="MDCLinearProgress" id="data-table-progress-bar">
+                        <div class="mdc-linear-progress__buffer">
+                            <div class="mdc-linear-progress__buffer-bar"></div>
+                            <div class="mdc-linear-progress__buffer-dots"></div>
+                        </div>
+                        <div class="mdc-linear-progress__bar mdc-linear-progress__primary-bar">
+                            <span class="mdc-linear-progress__bar-inner"></span>
+                        </div>
+                        <div class="mdc-linear-progress__bar mdc-linear-progress__secondary-bar">
+                            <span class="mdc-linear-progress__bar-inner"></span>
+                        </div>
+                    </div>
+                    <div class="mdc-data-table" data-mdc-auto-init="MDCDataTable" id="data-table">
+                        <div class="mdc-data-table__table-container">
+                            <table class="mdc-data-table__table" aria-label="Dessert calories">
+                                <thead>
+                                    <tr class="mdc-data-table__header-row">
+                                        <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Date
+                                        </th>
+                                        <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Duration
+                                        </th>
+                                        <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Payment
+                                            Method</th>
+                                        <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Payment
+                                            by</th>
+                                        <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Amount
+                                        </th>
+                                        <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Status
+                                        </th>
+                                        <th class="mdc-data-table__header-cell" role="columnheader" scope="col">Receipt
+                                        </th>
+
+                                    </tr>
+                                </thead>
+                                <tbody class="mdc-data-table__content" id="payments-table-body">
+
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="hidden" id="payment-table">
+                        <div class="mdc-data-table full-width" data-mdc-auto-init="MDCDataTable">
+                            <div class="mdc-data-table__table-container">
+                              <table class="mdc-data-table__table" aria-label="Transaction table">
+                                <thead>
+                                  <tr class="mdc-data-table__header-row">
+                                  </tr>
+                                </thead>
+                                <tbody class="mdc-data-table__content">
+                                  <tr class="mdc-data-table__row">
+                                    <th class="mdc-data-table__cell" scope="row" >Transaction status</th>
+                                    <td class="mdc-data-table__cell" id="txn-status"></td>
+                                   
+                                  </tr>
+                                  <tr class="mdc-data-table__row">
+                                    <th class="mdc-data-table__cell" scope="row">Order ID</th>
+                                    <th class="mdc-data-table__cell" scope="row" id="txn-order-id"></th>
+                                  </tr>
+                                  <tr class="mdc-data-table__row">
+                                    <th class="mdc-data-table__cell" scope="row">Amount</th>
+                                    <td class="mdc-data-table__cell" id="txn-amount"></td>
+                                  
+                                  </tr>
+                                  <tr class="mdc-data-table__row">
+                                    <th class="mdc-data-table__cell" scope="row" >Reference Id</th>
+                                    <td class="mdc-data-table__cell" id="txn-ref-id"></td>
+                                  </tr>
+                                  <tr class="mdc-data-table__row">
+                                    <th class="mdc-data-table__cell" scope="row" >Payment mode</th>
+                                    <td class="mdc-data-table__cell" id="txn-mode" ></td>
+                                  </tr>
+                                  <tr class="mdc-data-table__row">
+                                    <th class="mdc-data-table__cell" scope="row" >Transaction message</th>
+                                    <td class="mdc-data-table__cell" id="txn-msg" ></td>
+                                  </tr>
+                                  <tr class="mdc-data-table__row">
+                                    <th class="mdc-data-table__cell" scope="row" >Time</th>
+                                    <td class="mdc-data-table__cell" id="txn-time"></td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                    </div>
+                </div>
             </div>
 
-            </div>
-        </main>
     </div>
-    <div class="mdc-dialog" id="payment-dialog">
+    </main>
+    </div>
+    <div class="mdc-dialog plan-dialog" id="downgrade-plan" data-mdc-auto-init="MDCDialog">
         <div class="mdc-dialog__container">
             <div class="mdc-dialog__surface" role="alertdialog" aria-modal="true" aria-labelledby="my-dialog-title"
                 aria-describedby="my-dialog-content">
-                <div class="mdc-dialog__title mdc-typography--headline5 bold text-center mdc-theme--primary"
-                    id="my-dialog-title">
-                    Your trial period is over.
-                </div>
-                <div class="mdc-dialog__content" id="my-dialog-content">
-                    <div id="payment-dialog--body" class="mdc-typography--headline6 text-center">
-                        Choose your plan to continue
+             
+                <div class="mdc-dialog__content">
+                    <div class="animation">
+                        <lottie-player src="./lottie.json" background="transparent"  speed="1" loop  autoplay class="lottie-player"></lottie-player>
                     </div>
-                    <div class="mt-20 text-center">
-                        <a type="button" class="mdc-button mdc-dialog__button mdc-button--raised"
-                            data-mdc-dialog-action="close" id="choose-plan-button">
-                            <div class="mdc-button__ripple"></div>
-                            <span class="mdc-button__label">choose plan</span>
-                        </a>
+                    <p class="content">
+                        Are you sure you want to downgrade your plan ? You will lose out on your current <span class="highlight-plan"> saving of ₹1000</span>
+                    </p>
+                    <div class="button-cont">
+                        <div class="mt-20">
+                            <button class="mdc-button mdc-button--raised confirmation-button confirmation-button--positive" data-mdc-auto-init="MDCRipple" id="downgrade-no">
+                                <span class="mdc-button__label">No</span>
+                            </button>
+                        </div>
+                        <div class="mt-10">
+                            <button class="mdc-button confirmation-button confirmation-button--negative" id="downgrade-yes">
+                                <div class="mdc-button__ripple"></div>
+                                <span class="mdc-button__label">Continue</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="mdc-dialog__scrim"></div>
+    </div>
+    <div class="mdc-dialog plan-dialog" id="upgrade-plan" data-mdc-auto-init="MDCDialog">
+        <div class="mdc-dialog__container">
+            <div class="mdc-dialog__surface" role="alertdialog" aria-modal="true" aria-labelledby="my-dialog-title"
+                aria-describedby="my-dialog-content">
+                <h2 class="mdc-dialog__title">
+                </h2>
+                <div class="mdc-dialog__content">
+                    <div class="animation">
+                        <lottie-player src="./lottie.json" background="transparent"  speed="1" loop  autoplay class="lottie-player"></lottie-player>
+                    </div>
+                    <p class="content">Upgrade to ₹2999/year and <span class="highlight-plan">save nearly ₹1000</span></p>
+                    <div class="button-cont">
+                        <div class="mt-20">
+                            <button class="mdc-button mdc-button--raised confirmation-button confirmation-button--positive" data-mdc-auto-init="MDCRipple" id="upgrade-yes">
+                                <div class="mdc-button__ripple"></div>
+                                <i class="material-icons mdc-button__icon" aria-hidden="true">upgrade</i>
+                                <span class="mdc-button__label">Upgrade Now</span>
+                            </button>
+                        </div>
+                        <div class="mt-10">
+                            <button class="mdc-button confirmation-button confirmation-button--negative" id="upgrade-no">
+                                <div class="mdc-button__ripple"></div>
+                                <span class="mdc-button__label">Continue</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
+            </div>
+        </div>
+        <div class="mdc-dialog__scrim"></div>
+    </div>
+    <div class="mdc-dialog plan-dialog" id="choose-plan" data-mdc-auto-init="MDCDialog">
+        <div class="mdc-dialog__container">
+            <div class="mdc-dialog__surface" role="alertdialog" aria-modal="true" aria-labelledby="my-dialog-title"
+                aria-describedby="my-dialog-content">
+                <h2 class="mdc-dialog__title">
+                    Choose a plan
+                </h2>
+                <div class="mdc-dialog__content">
+                    <ul class="mdc-list" role="radiogroup" data-mdc-auto-init="MDCList" id="choose-plan-list">
+                        <li class="mdc-list-item" role="radio" aria-checked="true" tabindex="0">
+                            <span class="mdc-list-item__ripple"></span>
+                            <span class="mdc-list-item__graphic">
+                                <div class="mdc-radio">
+                                    <input class="mdc-radio__native-control" type="radio" id="plan-max"
+                                        name="demo-list-radio-item-group" value="2999">
+                                    <div class="mdc-radio__background">
+                                        <div class="mdc-radio__outer-circle"></div>
+                                        <div class="mdc-radio__inner-circle"></div>
+                                    </div>
+                                </div>
+                            </span>
+                            <label class="mdc-list-item__text" for="plan-max">₹2999</label>
+                        </li>
+                        <li class="mdc-list-item" role="radio" aria-checked="false">
+                            <span class="mdc-list-item__ripple"></span>
+                            <span class="mdc-list-item__graphic">
+                                <div class="mdc-radio">
+                                    <input class="mdc-radio__native-control" type="radio" id="plan-min"
+                                        name="demo-list-radio-item-group" value="999" checked>
+                                    <div class="mdc-radio__background">
+                                        <div class="mdc-radio__outer-circle"></div>
+                                        <div class="mdc-radio__inner-circle"></div>
+                                    </div>
+                                </div>
+                            </span>
+                            <label class="mdc-list-item__text" for="plan-min">₹999</label>
+                        </li>
+                    </ul>
+                    <button class="mdc-button mdc-button--raised" data-mdc-auto-init="MDCRipple" id="pay-now">
+                        <span class="mdc-button__label">Pay now</span>
+                    </button>
+                </div>
             </div>
         </div>
         <div class="mdc-dialog__scrim"></div>
@@ -302,8 +513,9 @@
     <script src="./js/utils.js"></script>
     <script src="./js/account.js"></script>
     <script src="./js/moment.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.2.0/jspdf.umd.min.js"></script>
-
+    <script src="./js/moment-precise-range.js"></script>
+    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+  
 </body>
 
 </html>
