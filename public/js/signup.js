@@ -202,8 +202,6 @@ const initJourney = () => {
         }).then(officeActivity => {
 
             localStorage.removeItem('completed');
-            const pstart = officeActivity.schedule[0].endTime;
-            const pend =  searchParams.get('renew') ? getDuration(Number(searchParams.get('plan')),officeActivity.schedule[0].endTime) : '';
             const data = {
                 name: officeActivity.office,
                 officeId: officeActivity.activityId,
@@ -216,8 +214,9 @@ const initJourney = () => {
                 template: 'office',
                 companyLogo: officeActivity.attachment['Company Logo'] ? officeActivity.attachment['Company Logo'].value : '',
                 schedule: officeActivity.schedule,
-                pstart:pstart,
-                pend: pend
+                endTime:officeActivity.schedule[0].endTime,
+                pstart:getPaymentStart(officeActivity.schedule[0].endTime),
+                pend: getPaymentEnd(officeActivity.schedule[0].endTime),
             };
 
             onboarding_data_save.set(data);
@@ -228,11 +227,25 @@ const initJourney = () => {
             if (isRenew) {
                 handlePayment(data, Number(searchParams.get("plan")))
                 return
-            }
+            };
             history.pushState(history.state, null, basePathName + `#choosePlan`);
             choosePlan();
         }).catch(console.error)
     })
+}
+
+const getPaymentStart = (endTime) => {
+    const currentTs = Date.now();
+    if(currentTs > endTime) return currentTs;
+    return endTime
+}
+
+const getPaymentEnd = (endTime) => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const currentTs = Date.now();
+    const time = currentTs > endTime ? currentTs : endTime;
+    const duration = searchParams.get('renew') ? getDuration(Number(searchParams.get('plan')),time) : '';
+    return duration;
 }
 
 
@@ -738,6 +751,7 @@ function officeFlow(category = onboarding_data_save.get().category) {
                 if (res.officeId) {
                     officeData.officeId = res.officeId;
                 }
+                officeData.pstart = Date.now();
                 officeData.name = res.office;
                 handleOfficeRequestSuccess(officeData);
                 if (window.fbq) {
@@ -893,10 +907,10 @@ function choosePlan() {
     nextBtn.element.addEventListener('click', () => {
         nextBtn.setLoader();
         waitTillCustomClaimsUpdate(officeData.name, function () {
-
+            
             const planSelected = plans[ulInit.selectedIndex].amount
-            // const pend = new URLSearchParams(window.location.search).get('pend');
-            // const duration = pend ? Number(pend) : getDuration(planSelected);
+            
+            officeData.pend = getDuration(planSelected,officeData.pstart)
             handlePayment(officeData, planSelected);
 
         })
@@ -905,8 +919,6 @@ function choosePlan() {
 }
 
 const handlePayment = (officeData, plan) => {
-    // const pstart = Number(new URLSearchParams(window.location.search).get("pstart")) || Date.now()
-
     http('POST', `${appKeys.getBaseUrl()}/api/services/payment`, {
         orderAmount: plan,
         orderCurrency: 'INR',
@@ -914,8 +926,8 @@ const handlePayment = (officeData, plan) => {
         paymentType: "membership",
         paymentMethod: "pgCashfree",
         phoneNumber: firebase.auth().currentUser.phoneNumber,
-        pstart: officeData.pstart || Date.now(),
-        pend: officeData.pend || getDuration(plan)
+        pstart: officeData.pstart,
+        pend: officeData.pend
     }).then(res => {
         onboarding_data_save.set({
             plan: plan,

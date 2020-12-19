@@ -207,24 +207,8 @@ var initJourney = function initJourney() {
       return;
     }
 
-    ; // debugger;
-    // if (!window.location.hash) {
-    //     redirect('/admin/index.html')
-    //     return
-    // }
-    // for existing offices get office activity and start from choose plan 
-    // if(!window.location.hash.split("?")[1])  {
-    //     debugger;
-    //     redirect('/join.html?createNew=1')
-    //     return
-    // };
-
-    var office = searchParams.get('office'); // if(isRenew) {
-    //     office = searchParams.get('office');
-    // }
-    // office = decodeURIComponent(window.location.hash.split("?")[1].split("=")[1]);
-
-    console.log(office);
+    ;
+    var office = searchParams.get('office');
     journeyContainer.innerHTML = "<div class='center-screen'><div class=\"lds-ring\"><div></div><div></div><div></div><div></div></div><p>Please wait</p></div>";
     http('GET', "".concat(appKeys.getBaseUrl(), "/api/office?office=").concat(office)).then(function (officeMeta) {
       if (!officeMeta.results.length) {
@@ -250,7 +234,10 @@ var initJourney = function initJourney() {
         yearOfEstablishment: officeActivity.attachment['Year Of Establishment'] ? officeActivity.attachment['Year Of Establishment'].value : '',
         template: 'office',
         companyLogo: officeActivity.attachment['Company Logo'] ? officeActivity.attachment['Company Logo'].value : '',
-        schedule: officeActivity.schedule
+        schedule: officeActivity.schedule,
+        endTime: officeActivity.schedule[0].endTime,
+        pstart: getPaymentStart(officeActivity.schedule[0].endTime),
+        pend: getPaymentEnd(officeActivity.schedule[0].endTime)
       };
       onboarding_data_save.set(data);
       onboarding_data_save.set({
@@ -258,14 +245,29 @@ var initJourney = function initJourney() {
       });
 
       if (isRenew) {
-        handlePayment(office, Number(searchParams.get("plan")), Number(searchParams.get('pend')));
+        handlePayment(data, Number(searchParams.get("plan")));
         return;
       }
 
+      ;
       history.pushState(history.state, null, basePathName + "#choosePlan");
       choosePlan();
     }).catch(console.error);
   });
+};
+
+var getPaymentStart = function getPaymentStart(endTime) {
+  var currentTs = Date.now();
+  if (currentTs > endTime) return currentTs;
+  return endTime;
+};
+
+var getPaymentEnd = function getPaymentEnd(endTime) {
+  var searchParams = new URLSearchParams(window.location.search);
+  var currentTs = Date.now();
+  var time = currentTs > endTime ? currentTs : endTime;
+  var duration = searchParams.get('renew') ? getDuration(Number(searchParams.get('plan')), time) : '';
+  return duration;
 };
 
 var nextButton = function nextButton() {
@@ -750,6 +752,7 @@ function officeFlow() {
           officeData.officeId = res.officeId;
         }
 
+        officeData.pstart = Date.now();
         officeData.name = res.office;
         handleOfficeRequestSuccess(officeData);
 
@@ -897,25 +900,23 @@ function choosePlan() {
     nextBtn.setLoader();
     waitTillCustomClaimsUpdate(officeData.name, function () {
       var planSelected = plans[ulInit.selectedIndex].amount;
-      var pend = new URLSearchParams(window.location.search).get('pend');
-      var duration = pend ? Number(pend) : getDuration(planSelected);
-      handlePayment(officeData.name, planSelected, duration);
+      officeData.pend = getDuration(planSelected, officeData.pstart);
+      handlePayment(officeData, planSelected);
     });
   });
   actionsContainer.appendChild(nextBtn.element);
 }
 
-var handlePayment = function handlePayment(office, plan, duration) {
-  var pstart = Number(new URLSearchParams(window.location.search).get("pstart")) || Date.now();
+var handlePayment = function handlePayment(officeData, plan) {
   http('POST', "".concat(appKeys.getBaseUrl(), "/api/services/payment"), {
     orderAmount: plan,
     orderCurrency: 'INR',
-    office: office,
+    office: officeData.name,
     paymentType: "membership",
     paymentMethod: "pgCashfree",
     phoneNumber: firebase.auth().currentUser.phoneNumber,
-    pstart: pstart,
-    pend: duration
+    pstart: officeData.pstart,
+    pend: officeData.pend
   }).then(function (res) {
     onboarding_data_save.set({
       plan: plan,
@@ -1278,7 +1279,7 @@ var showTransactionDialog = function showTransactionDialog(paymentResponse, offi
 
     if (paymentResponse.txStatus === 'SUCCESS') {
       if (new URLSearchParams(window.location.search).get('renew')) {
-        redirect('/admin/index.html');
+        redirect('/admin/index.html?renewd=1');
       }
 
       history.pushState(history.state, null, basePathName + "".concat(window.location.search, "#employees"));

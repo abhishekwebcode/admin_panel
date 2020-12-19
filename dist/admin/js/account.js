@@ -19,8 +19,8 @@ var init = function init(office, officeId) {
   var imageUpload = document.getElementById('image-upload');
   var submitBtn = form.querySelector('.form-submit[type="submit"]');
   var base64Image = auth.photoURL;
-  nameField.value = auth.displayName;
-  emailField.value = auth.email;
+  nameField.value = auth.displayName || '';
+  emailField.value = auth.email || '';
 
   if (auth.photoURL) {
     imageField.style.backgroundImage = "url(\"".concat(auth.photoURL, "\")");
@@ -52,7 +52,8 @@ var init = function init(office, officeId) {
         email: emailField.value
       });
     }).then(function () {
-      auth.reload(); // handleFormButtonSubmitSuccess(submitBtn, 'Account updated')
+      auth.reload();
+      submitBtn.classList.remove('active');
     }).catch(function (err) {
       submitBtn.classList.remove('active');
       var message = getEmailErrorMessage(err);
@@ -72,9 +73,9 @@ var init = function init(office, officeId) {
     console.log("end Time", new Date(endTime));
     console.log("start Time", new Date(activity.schedule[0].startTime)); // console.log(moment.duration(moment(endTime).diff(moment(),'months',true),'months'))
 
-    document.getElementById('start-date').textContent = moment(activity.schedule[0].startTime).format('DD MMM YYYY');
-    document.getElementById('end-date').textContent = moment(endTime).format('DD MMM YYYY');
-    document.getElementById('days-left').textContent = getMemberShipEnd(endTime);
+    document.getElementById('start-date').textContent = activity.schedule[0].startTime ? moment(activity.schedule[0].startTime).format('DD MMM YYYY') : '-';
+    document.getElementById('end-date').textContent = endTime ? moment(endTime).format('DD MMM YYYY') : '-';
+    document.getElementById('days-left').textContent = endTime ? getMemberShipEnd(endTime, Date.now()) : '-';
     document.getElementById('status').innerHTML = isOfficeActive(activity) ? "<span class='mdc-theme--success inline-flex'><i class='material-icons mr-10'>check_circle</i> Active</span>" : "<span class='mdc-theme--error inline-flex'><i class='material-icons mr-10'>cancel</i> Inactive</span>";
     var tableBody = document.getElementById('payments-table-body');
     var progressBar = document.getElementById('data-table-progress-bar').MDCLinearProgress;
@@ -85,8 +86,8 @@ var init = function init(office, officeId) {
       var subscriptions = response.results;
 
       if (!subscriptions.length) {
+        progressBar.close();
         tableBody.innerHTML = "<span class='mdc-theme--error'>No pamynets found</span>";
-        return;
       }
 
       ;
@@ -96,20 +97,15 @@ var init = function init(office, officeId) {
       var upgradeDialog = document.getElementById('upgrade-plan').MDCDialog;
       var choosePlanDialog = document.getElementById('choose-plan').MDCDialog;
       renewNow.addEventListener('click', function () {
-        if (subscriptions[0].attachment.Amount.value == 2999) {
-          var _endTime = activity.schedule[0].endTime;
-          var pend = getDuration(2999, _endTime);
-          console.log("pend", new Date(pend));
-          console.log("pstart", new Date(_endTime)); // return;
-
-          redirect("/join.html?renew=1&office=".concat(encodeURIComponent(office), "&plan=2999&pstart=").concat(_endTime, "&pend=").concat(pend));
+        if (subscriptions.length && subscriptions[0].attachment.Amount.value == 2999 && subscriptions[0].status === "CONFIRMED") {
+          redirect("/join.html?renew=1&office=".concat(encodeURIComponent(office), "&plan=2999"));
           return;
         }
 
         upgradeDialog.open();
       });
       changePlan.addEventListener('click', function () {
-        if (subscriptions[0].attachment.Amount.value == 2999) {
+        if (subscriptions.length && subscriptions[0].attachment.Amount.value == 2999 && subscriptions[0].status === "CONFIRMED") {
           downgradeDialog.open();
           return;
         }
@@ -130,8 +126,7 @@ var init = function init(office, officeId) {
         var plans = [2999, 999];
         var ul = document.getElementById('choose-plan-list').MDCList;
         var amount = plans[ul.selectedIndex];
-        var pend = getDuration(amount, endTime);
-        redirect("/join.html?renew=1&office=".concat(encodeURIComponent(office), "&plan=").concat(amount, "&pstart=").concat(endTime, "&pend=").concat(pend));
+        redirect("/join.html?renew=1&office=".concat(encodeURIComponent(office), "&plan=").concat(amount));
       });
     });
   }).catch(function (err) {
@@ -141,9 +136,10 @@ var init = function init(office, officeId) {
 };
 
 var getMemberShipEnd = function getMemberShipEnd(endTime, startTime) {
-  console.log(moment.preciseDiff(endTime, startTime));
+  if (startTime > endTime) return '-';
+  console.log(moment.preciseDiff(endTime, startTime, true));
   var diff = moment.preciseDiff(endTime, startTime, true);
-  return "".concat(diff.years ? "".concat(diff.years, " years") : '', " ").concat(diff.months ? "".concat(diff.months, " months") : '', " ").concat(diff.days ? "".concat(diff.days, " days") : '');
+  return "".concat(diff.years ? "".concat(diff.years, " years") : '', " ").concat(diff.months ? "".concat(diff.months, " months") : '', " ").concat(diff.days ? "".concat(diff.days, " days") : '', " ").concat(diff.hours ? "".concat(diff.hours, " hours") : '', " ").concat(diff.minutes ? "".concat(diff.minutes, " minutes") : '');
 };
 
 var isOfficeActive = function isOfficeActive(activity) {
@@ -173,6 +169,8 @@ var getRow = function getRow(subscriptions) {
       },
       textContent: subscription.attachment['Payment Initiation Date'].value
     });
+    console.log(new Date(subscription.schedule[0].endTime));
+    console.log(new Date(subscription.schedule[0].startTime));
     var duration = createElement('th', {
       className: 'mdc-data-table__cell',
       attrs: {

@@ -956,7 +956,7 @@ const phoneFieldInit = (numberField, dropEl) => {
 
 const getDuration = (amount,startTime) => {
   
-    const d = startTime ? new Date(startTime) : new Date();
+    const d = startTime ? new Date(startTime) : new Date()
     switch (amount) {
         case 999:
             d.setMonth(d.getMonth() + 3);

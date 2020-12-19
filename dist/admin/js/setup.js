@@ -217,10 +217,6 @@ var initDBErrorHandler = function initDBErrorHandler() {
 };
 
 var startApplication = function startApplication(office) {
-  var userProfileLogo = document.getElementById('user-logo');
-  userProfileLogo.addEventListener('click', function (ev) {
-    openProfileBox(ev);
-  });
   var menu = new mdc.iconButton.MDCIconButtonToggle(document.getElementById('menu'));
   menu.listen('MDCIconButtonToggle:change', function (event) {
     if (drawer.root.classList.contains('mdc-drawer--dismissible')) {
@@ -243,6 +239,10 @@ var startApplication = function startApplication(office) {
     // get office activity 
     return getOfficeActivity(officeId);
   }).then(function (officeActivity) {
+    var userProfileLogo = document.getElementById('user-logo');
+    userProfileLogo.addEventListener('click', function (ev) {
+      openProfileBox(ev);
+    });
     appLoader.remove();
 
     if (window.location.pathname.split("/").indexOf("account") > -1 || window.location.pathname.split("/").indexOf("account.html") > -1) {
@@ -260,6 +260,8 @@ var startApplication = function startApplication(office) {
     if (!hasMultipleOffice) {
       dialog.scrimClickAction = "";
     }
+
+    ;
 
     if (!officeHasMembership(schedule)) {
       dialogTitle.textContent = 'You are just 1 step away from tracking your employees successfully.';

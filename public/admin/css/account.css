@@ -160,3 +160,6 @@ form .mdc-text-field {
     margin: 0 auto;
 
 }
+.receipt-down {
+    cursor: pointer;
+}
