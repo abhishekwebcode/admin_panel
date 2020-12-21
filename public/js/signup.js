@@ -101,7 +101,6 @@ const basePathName = window.location.pathname;
  * load the prev view
  */
 window.addEventListener('popstate', ev => {
-    debugger;
     if (localStorage.getItem('completed') === "true") {
         for (var i = 0; i < 50; i++) {
             history.pushState(history.state, null, null);
@@ -138,7 +137,7 @@ window.addEventListener('popstate', ev => {
             break
     }
     if (fnName === redirect) {
-        redirect('/join');
+        redirect('/join.html');
         return;
     }
     fnName();
@@ -168,7 +167,6 @@ const decrementProgress = () => {
 
 const initJourney = () => {
     onboarding_data_save.init();
-
     journeyPrevBtn.addEventListener('click', function (e) {
         history.back();
     })
@@ -176,12 +174,11 @@ const initJourney = () => {
     firebase.auth().currentUser.getIdTokenResult().then((idTokenResult) => {
         //if new user start with welcome screen
         const searchParams = new URLSearchParams(window.location.search)
-        const newOfficeCreation = searchParams.get('createNew');
         const isRenew = searchParams.get('renew') && searchParams.get('renew') === "1"
+        const newUser = searchParams.get('new_user') && searchParams.get('new_user') === "1";
 
-        if(isAdmin(idTokenResult)) return redirect('/admin/');
-        
-        if(searchParams.get('new_user') === "1") {
+
+        if(searchParams.get("new_office")) {
             onboarding_data_save.set({
                 status: 'PENDING'
             })
@@ -190,9 +187,15 @@ const initJourney = () => {
             return
         }
 
-        // if (!isAdmin(idTokenResult) || newOfficeCreation) {
-        // };
-
+        if(!isAdmin(idTokenResult) && newUser) {
+            onboarding_data_save.set({
+                status: 'PENDING'
+            })
+            history.pushState(history.state, null, basePathName + `?new_user=1#welcome`)
+            initFlow();
+            return
+        }
+        
         const office = searchParams.get('office');
         journeyContainer.innerHTML = `<div class='center-screen'><div class="lds-ring"><div></div><div></div><div></div><div></div></div><p>Please wait</p></div>`
         http('GET', `${appKeys.getBaseUrl()}/api/office?office=${office}`).then(officeMeta => {
@@ -832,9 +835,9 @@ const handleOfficeRequestSuccess = (officeData) => {
     onboarding_data_save.set(officeData);
     onboarding_data_save.set({
         'category': officeData.category
-    })
-
-    history.pushState(history.state, null, basePathName + `${window.location.search}#choosePlan`)
+    });
+    console.log(window.location.search)
+    history.pushState(history.state, null, basePathName + `${window.location.search ? `${window.location.search}&office=${encodeURIComponent(officeData.name)}` : `?office=${encodeURIComponent(officeData.name)}`}#choosePlan`)
     incrementProgress();
     choosePlan();
 }

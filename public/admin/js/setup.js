@@ -32,7 +32,7 @@ window.addEventListener('load', () => {
 
             const claims = idTokenResult.claims;
 
-            if (claims.support) return redirect('/support');
+            // if (claims.support) return redirect('/support');
             if (claims.admin && claims.admin.length) {
 
                 // if there are multiple offices fill the drawer header with office list
@@ -78,7 +78,7 @@ window.addEventListener('load', () => {
                 }
                 return initializeIDB(claims.admin[0]);
             }
-            return redirect('/join.html?createNew=1');
+            return redirect('/join.html?new_user=1');
         })
     });
 })

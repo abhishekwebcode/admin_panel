@@ -898,7 +898,10 @@ const hasValidSchedule = (schedule) => {
 
 const officeHasMembership = (schedule) => {
     if (!hasValidSchedule(schedule)) return false;
-    if (schedule[0].startTime || schedule[0].endTime) return true;
+    const st = schedule[0].startTime;
+    const et = schedule[0].endTime;
+    if(st == et && st == 0) return;
+    if(st == et && Math.abs(et-st) == 0) return true;
     return false;
 }
 
