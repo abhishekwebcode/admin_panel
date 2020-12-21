@@ -101,7 +101,7 @@ const basePathName = window.location.pathname;
  * load the prev view
  */
 window.addEventListener('popstate', ev => {
-
+    debugger;
     if (localStorage.getItem('completed') === "true") {
         for (var i = 0; i < 50; i++) {
             history.pushState(history.state, null, null);
@@ -179,14 +179,20 @@ const initJourney = () => {
         const newOfficeCreation = searchParams.get('createNew');
         const isRenew = searchParams.get('renew') && searchParams.get('renew') === "1"
 
-        if (!isAdmin(idTokenResult) || newOfficeCreation) {
+        if(isAdmin(idTokenResult)) return redirect('/admin/');
+        
+        if(searchParams.get('new_user') === "1") {
             onboarding_data_save.set({
                 status: 'PENDING'
             })
             history.pushState(history.state, null, basePathName + `?new_user=1#welcome`)
             initFlow();
             return
-        };
+        }
+
+        // if (!isAdmin(idTokenResult) || newOfficeCreation) {
+        // };
+
         const office = searchParams.get('office');
         journeyContainer.innerHTML = `<div class='center-screen'><div class="lds-ring"><div></div><div></div><div></div><div></div></div><p>Please wait</p></div>`
         http('GET', `${appKeys.getBaseUrl()}/api/office?office=${office}`).then(officeMeta => {

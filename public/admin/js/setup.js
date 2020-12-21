@@ -78,7 +78,7 @@ window.addEventListener('load', () => {
                 }
                 return initializeIDB(claims.admin[0]);
             }
-            return redirect('/join');
+            return redirect('/join.html?createNew=1');
         })
     });
 })
@@ -262,7 +262,8 @@ const startApplication = (office) => {
         const dialog = new mdc.dialog.MDCDialog(document.getElementById('payment-dialog'));
         const dialogBody = document.getElementById('payment-dialog--body');
         const dialogTitle = document.getElementById('my-dialog-title');
-        document.getElementById('choose-plan-button').href = `../join.html?office=${encodeURIComponent(office)}`;
+        const renewBtn = document.getElementById('choose-plan-button');
+        renewBtn.href = `./account.html#subscription-cont`;
         const schedule = officeActivity.schedule;
         const isUserFirstContact = officeActivity.attachment['First Contact'].value === firebase.auth().currentUser.phoneNumber;
         if (!hasMultipleOffice) {
@@ -270,7 +271,7 @@ const startApplication = (office) => {
         };
         if (!officeHasMembership(schedule)) {
             dialogTitle.textContent = 'You are just 1 step away from tracking your employees successfully.';
-            dialogBody.textContent = 'Choose your plan to get started.';
+            dialogBody.textContent = 'Choose plan to renew now.';
             officeActivity.geopoint = {
                 latitude: 0,
                 longitude: 0
@@ -282,6 +283,7 @@ const startApplication = (office) => {
                 }
                 dialogBody.textContent = 'Please ask the business owner to complete the payment';
                 dialog.open();
+                renewBtn.classList.add('hidden')
             });
             return
         }
@@ -299,6 +301,7 @@ const startApplication = (office) => {
 
             dialogBody.textContent = 'Please ask the business owner to renew the payment';
             dialog.open();
+            renewBtn.classList.add('hidden')
             return
         }
 

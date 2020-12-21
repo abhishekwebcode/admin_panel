@@ -65,8 +65,6 @@ const init = (office, officeId) => {
         console.log("end Time", new Date(endTime))
         console.log("start Time", new Date(activity.schedule[0].startTime))
 
-        // console.log(moment.duration(moment(endTime).diff(moment(),'months',true),'months'))
-
         document.getElementById('start-date').textContent = activity.schedule[0].startTime ? moment(activity.schedule[0].startTime).format('DD MMM YYYY') : '-'
         document.getElementById('end-date').textContent = endTime ? moment(endTime).format('DD MMM YYYY') : '-'
         document.getElementById('days-left').textContent = endTime ? getMemberShipEnd(endTime, Date.now()) : '-';
@@ -77,7 +75,6 @@ const init = (office, officeId) => {
         progressBar.open();
         getMemberShipDetails(officeId).then(response => {
             console.log(response)
-            // clearError();
             const subscriptions = response.results;
             if (!subscriptions.length) {
                 progressBar.close();
