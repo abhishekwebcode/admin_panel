@@ -1,22 +1,3 @@
-function initializeLogIn(el) {
-
-  firebase.auth().onAuthStateChanged(user => {
-
-    if (document.getElementById('app-bar-signup')) {
-      document.getElementById('app-bar-signup').classList.remove('hidden')
-    }
-
-    if (!user) {
-      document.body.classList.remove('hidden');
-      login(el);
-      return;
-    };
-
-    flushStoredErrors()
-    sendAcqusition().then(handleLoggedIn).catch(handleLoggedIn);
-  })
-}
-
 const sendAcqusition = () => {
   const param = parseURL();
   if (!param) return Promise.resolve();
@@ -33,13 +14,13 @@ const sendAcqusition = () => {
  * Handles a logged in user.
  * @param {Boolean} isNewUser 
  */
-function handleLoggedIn(isNewUser) {
+function handleLoggedIn(authResult) {
   const param = parseURL();
   if (window.location.pathname === '/welcome' && param && param.get('action') === 'get-subscription') {
     handleWelcomePage();
     return
   };
-  handleAuthRedirect(isNewUser)
+  handleAuthRedirect(authResult)
 
 }
 
@@ -62,8 +43,11 @@ const handleWelcomePage = () => {
  * Handle redirect based on custom claims
  * @param {Boolean} isNewUser 
  */
-const handleAuthRedirect = () => {
+const handleAuthRedirect = (authResult) => {
   firebase.auth().currentUser.getIdTokenResult().then(idTokenResult => {
+    
+    handleAuthAnalytics(authResult,idTokenResult);
+
     if (idTokenResult.claims.support) return redirect('/support');
     if (idTokenResult.claims.admin && idTokenResult.claims.admin.length > 0) return redirect('/admin/index.html')
     redirect('/join.html?new_user=1');

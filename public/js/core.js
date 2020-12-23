@@ -806,25 +806,27 @@ const handleRecaptcha = (buttonId) => {
 
 
 
-function handleAuthAnalytics(result) {
+const handleAuthAnalytics = (authResult, tokenResult) => {
+    // if (!result) {
+    //     fbq('trackCustom', 'login');
+    //     return
+    // }
 
-    console.log(result);
+    // if (result && !result.additionalUserInfo) return;
+    console.log(authResult);
     if (!window.fbq) return;
-    if (!result) {
-        fbq('trackCustom', 'login');
+    if (authResult.additionalUserInfo.isNewUser) {
+
+        // firebase.auth().currentUser.getIdTokenResult().then(function (tokenResult) {
+        if (isAdmin(tokenResult)) {
+            fbq('trackCustom', 'Sign Up Admin');
+            return
+        }
+        fbq('trackCustom', 'Sign Up');
+        // })
         return
     }
-    if (result && !result.additionalUserInfo) return;
-    if (result.additionalUserInfo.isNewUser) {
-        firebase.auth().currentUser.getIdTokenResult().then(function (tokenResult) {
-            if (isAdmin(tokenResult)) {
-                fbq('trackCustom', 'Sign Up Admin');
-            } else {
-                fbq('trackCustom', 'Sign Up');
-            }
-        })
-        return
-    }
+    fbq('trackCustom', 'login');
 }
 
 
@@ -898,8 +900,8 @@ const officeHasMembership = (schedule) => {
     if (!hasValidSchedule(schedule)) return false;
     const st = schedule[0].startTime;
     const et = schedule[0].endTime;
-    if(st == et && st == 0) return;
-    if(st == et && Math.abs(et-st) == 0) return;
+    if (st == et && st == 0) return;
+    if (st == et && Math.abs(et - st) == 0) return;
     return true;
 }
 
@@ -955,8 +957,8 @@ const phoneFieldInit = (numberField, dropEl) => {
 };
 
 
-const getDuration = (amount,startTime) => {
-  
+const getDuration = (amount, startTime) => {
+
     const d = startTime ? new Date(startTime) : new Date()
     switch (amount) {
         case 999:

@@ -13,16 +13,16 @@
   <link rel="preload" href="https://unpkg.com/material-components-web@7.0.0/dist/material-components-web.min.css"
     as="style">
   <link rel="stylesheet" href="https://unpkg.com/material-components-web@7.0.0/dist/material-components-web.min.css">
-  <link rel="stylesheet" href="./css/intl-tel-input/intlTelInput.min.css">
+  <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/4.6.1/firebase-ui-auth.css" />
   <link rel="stylesheet" href="./css/static.css">
   <link rel="stylesheet" href="./css/login.css">
   <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
   <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro&display=swap" rel="stylesheet">
   <script defer src="https://unpkg.com/material-components-web@7.0.0/dist/material-components-web.min.js"></script>
-
   <script defer src="https://www.gstatic.com/firebasejs/7.1.0/firebase-app.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/7.1.0/firebase-auth.js"></script>
-  
+  <script defer src="https://www.gstatic.com/firebasejs/ui/4.6.1/firebase-ui-auth.js"></script>
+
 
 
 </head>
@@ -34,7 +34,7 @@
       style="display:none;visibility:hidden"></iframe></noscript>
   <!-- End Google Tag Manager (noscript) -->
   <header class="mdc-top-app-bar mdc-top-app-bar--fixed" data-mdc-auto-init="MDCTopAppBar" style="z-index: 7;">
-   
+
     <div class="mdc-top-app-bar__row content-max-width">
       <section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-start">
 
@@ -48,7 +48,7 @@
         <span class="mdc-top-app-bar__title">
           <strong>GROWTH</strong>FILE
         </span>
-       
+
       </section>
       <section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-end" role="toolbar">
 
@@ -56,146 +56,24 @@
         <span class="inline-flex mdc-top-app-bar__action-item call-us--icon mdc-top-app-bar__action-item"><i
             class="material-icons">phone</i>
           <a class="no-underline mdc-theme--on-primary" href="tel:+918595422858"> +91 85954 22858</a>
-        </span>    
+        </span>
       </section>
     </div>
   </header>
-  
+
   <div class="mdc-top-app-bar--fixed-adjust page-content-section">
     <section class="section">
       <div class="content-max-width">
         <div class="outer">
           <div class="middle">
             <div class="inner">
-              <div class="phonenumber-form mdc-elevation--z4 hidden" id="home-login">
-                <div class="mdc-typography--headline5 bold text-center">Track your employees with OnDuty</div>
-                <div class="mdc-typography--headline6" id="auth-secondary--text" style="text-align: center;">Register now</div>
-                <div id="auth-section" class="hidden mt-20">
-            
-                  <label
-                    class="mdc-text-field mdc-text-field--outlined mdc-text-field--no-label full-width phonenumber-field"
-                    id="phone-number">
-                    <input class="mdc-text-field__input" type="tel" aria-label="Label" required
-                      autocomplete="tel-national">
-                    <span class="mdc-notched-outline">
-                      <span class="mdc-notched-outline__leading"></span>
-                      <span class="mdc-notched-outline__trailing"></span>
-                    </span>
-                  </label>
-                  <div class="mdc-text-field-helper-line">
-                    <div class="mdc-text-field-helper-text mdc-text-field-helper-text--validation-msg">
-                    </div>
-                  </div>
-                </div>
-                <button class="mdc-button mdc-button--raised mt-10" id="get-started">
-                  <div class="mdc-button__ripple"></div>
-                  <span class="mdc-button__label">Get started</span>
-                </button>
-                <div class="full-width text-center mt-20 account-create--section">
-                  <span>Already have an account ? 
-                      <span class="ml-10 sign-up-link" id="login--login-box">Sign in</span>
-                  </span>
-              </div>
-              </div>
+              <div class="straight-loader" id="login-loader"></div>
+              <div id="firebaseui-auth-container"></div>
             </div>
           </div>
         </div>
       </div>
     </section>
- 
-  
-
-    <div id='snackbar-container'></div>
-    <div id="country-dom"></div>
-    <div class="mdc-dialog" id="otp-dialog">
-      <div class="mdc-dialog__container">
-        <div class="mdc-dialog__surface" role="alertdialog" aria-modal="true" aria-labelledby="my-dialog-title"
-          aria-describedby="my-dialog-content">
-
-          <h2 class="mdc-dialog__title" id="dialog-title">
-            Enter the 6 digit verification code sent to your phone
-          </h2>
-          <div class="mdc-dialog__content" id="dialog-content">
-            <div class="onboarding-otp">
-              <div class="otp-container">
-                <label class="mdc-text-field mdc-text-field--outlined mdc-text-field--no-label"
-                  data-mdc-auto-init="MDCTextField">
-                  <input class="mdc-text-field__input" type="tel" required="" maxlength="1" size="1" min="0" max="9"
-                    pattern="[0-9]{1}">
-                  <span class="mdc-notched-outline mdc-notched-outline--upgraded">
-                    <span class="mdc-notched-outline__leading"></span>
-
-                    <span class="mdc-notched-outline__trailing"></span>
-                  </span>
-                </label>
-                <label class="mdc-text-field mdc-text-field--outlined mdc-text-field--no-label"
-                  data-mdc-auto-init="MDCTextField">
-                  <input class="mdc-text-field__input" type="tel" required="" maxlength="1" size="1" min="0" max="9"
-                    pattern="[0-9]{1}">
-                  <span class="mdc-notched-outline mdc-notched-outline--upgraded">
-                    <span class="mdc-notched-outline__leading"></span>
-
-                    <span class="mdc-notched-outline__trailing"></span>
-                  </span>
-                </label>
-                <label class="mdc-text-field mdc-text-field--outlined mdc-text-field--no-label"
-                  data-mdc-auto-init="MDCTextField">
-                  <input class="mdc-text-field__input" type="tel" required="" maxlength="1" size="1" min="0" max="9"
-                    pattern="[0-9]{1}">
-                  <span class="mdc-notched-outline mdc-notched-outline--upgraded">
-                    <span class="mdc-notched-outline__leading"></span>
-
-                    <span class="mdc-notched-outline__trailing"></span>
-                  </span>
-                </label>
-                <label class="mdc-text-field mdc-text-field--outlined mdc-text-field--no-label"
-                  data-mdc-auto-init="MDCTextField">
-                  <input class="mdc-text-field__input" type="tel" required="" maxlength="1" size="1" min="0" max="9"
-                    pattern="[0-9]{1}">
-                  <span class="mdc-notched-outline mdc-notched-outline--upgraded">
-                    <span class="mdc-notched-outline__leading"></span>
-
-                    <span class="mdc-notched-outline__trailing"></span>
-                  </span>
-                </label>
-                <label class="mdc-text-field mdc-text-field--outlined mdc-text-field--no-label"
-                  data-mdc-auto-init="MDCTextField">
-                  <input class="mdc-text-field__input" type="tel" required="" maxlength="1" size="1" min="0" max="9"
-                    pattern="[0-9]{1}">
-                  <span class="mdc-notched-outline mdc-notched-outline--upgraded">
-                    <span class="mdc-notched-outline__leading"></span>
-
-                    <span class="mdc-notched-outline__trailing"></span>
-                  </span>
-                </label>
-                <label class="mdc-text-field mdc-text-field--outlined mdc-text-field--no-label"
-                  data-mdc-auto-init="MDCTextField">
-                  <input class="mdc-text-field__input" type="tel" required="" maxlength="1" size="1" min="0" max="9"
-                    pattern="[0-9]{1}">
-                  <span class="mdc-notched-outline mdc-notched-outline--upgraded">
-                    <span class="mdc-notched-outline__leading"></span>
-
-                    <span class="mdc-notched-outline__trailing"></span>
-                  </span>
-                </label>
-              </div>
-              <div class="otp-verification-failed mdc-theme--error mt-10">
-              </div>
-              <div class="otp-loader straight-loader hidden"></div>
-              <button class="mdc-button mdc-button--raised full-width" data-mdc-auto-init="MDCRipple" id="submit-otp" disabled>
-                <div class="mdc-button__ripple"></div>
-                <span class="mdc-button__label">Continue</span>
-              </button>
-              <div class="otp-meta text-left">
-                <div class="resend-box">Didn't receive the code ? <span class="mdc-theme--primary" id="resend-sms-verification">Send again</span></div>
-                <div class="resend-box mdc-theme--primary" id='change-phone-number'>Change phone number</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="mdc-dialog__scrim"></div>
-    </div>
   </div>
 
 
@@ -219,14 +97,11 @@
   </script>
   <!-- End Google Tag Manager -->
 
-  <script src="js/core.js"></script>
-  <script src="js/intl-tel-input/intlTelInput.min.js"></script>
-  <script src="js/intl-tel-input/utils.js"></script>
-
-  <script src="./js/components.js"></script>
+  <script defer src="js/core.js"></script>
+  <script defer src="./js/auth.js"></script>
+  <!-- <script src="./js/components.js"></script> -->
   <script src="./js/init.js"></script>
-  <script src="./js/login.js"></script>
-  <script src="./js/auth.js"></script>
+  <!-- <script src="./js/login.js"></script> -->
 </body>
 
 </html>
