@@ -26,8 +26,7 @@ window.addEventListener('load', function () {
     drawer = new mdc.drawer.MDCDrawer(document.querySelector(".mdc-drawer"));
     window.mdc.autoInit();
     firebase.auth().currentUser.getIdTokenResult().then(function (idTokenResult) {
-      var claims = idTokenResult.claims;
-      if (claims.support) return redirect('/support');
+      var claims = idTokenResult.claims; // if (claims.support) return redirect('/support');
 
       if (claims.admin && claims.admin.length) {
         // if there are multiple offices fill the drawer header with office list
@@ -74,7 +73,7 @@ window.addEventListener('load', function () {
         return initializeIDB(claims.admin[0]);
       }
 
-      return redirect('/join');
+      return redirect('/join.html?new_user=1');
     });
   });
 }); // firebase.auth().currentUser.getIdTokenResult(idTokenResult=>{
@@ -254,7 +253,8 @@ var startApplication = function startApplication(office) {
     var dialog = new mdc.dialog.MDCDialog(document.getElementById('payment-dialog'));
     var dialogBody = document.getElementById('payment-dialog--body');
     var dialogTitle = document.getElementById('my-dialog-title');
-    document.getElementById('choose-plan-button').href = "../join.html?office=".concat(encodeURIComponent(office));
+    var renewBtn = document.getElementById('choose-plan-button');
+    renewBtn.href = "./account.html#subscription-cont";
     var schedule = officeActivity.schedule;
     var isUserFirstContact = officeActivity.attachment['First Contact'].value === firebase.auth().currentUser.phoneNumber;
 
@@ -266,7 +266,7 @@ var startApplication = function startApplication(office) {
 
     if (!officeHasMembership(schedule)) {
       dialogTitle.textContent = 'You are just 1 step away from tracking your employees successfully.';
-      dialogBody.textContent = 'Choose your plan to get started.';
+      dialogBody.textContent = 'Choose plan to renew now.';
       officeActivity.geopoint = {
         latitude: 0,
         longitude: 0
@@ -279,6 +279,7 @@ var startApplication = function startApplication(office) {
 
         dialogBody.textContent = 'Please ask the business owner to complete the payment';
         dialog.open();
+        renewBtn.classList.add('hidden');
       });
       return;
     }
@@ -299,6 +300,7 @@ var startApplication = function startApplication(office) {
       ;
       dialogBody.textContent = 'Please ask the business owner to renew the payment';
       dialog.open();
+      renewBtn.classList.add('hidden');
       return;
     }
 

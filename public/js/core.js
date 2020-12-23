@@ -304,11 +304,9 @@ const handleAuthUpdate = (authProps) => {
             })
             .then(resolve)
             .catch(function (authError) {
-
                 console.log(authError);
-
                 authError.type = 'auth'
-                if (authError.code === 'auth/requires-recent-login') return resolve()
+                // if (authError.code === 'auth/requires-recent-login') return reject()
                 reject(authError)
             })
     })
@@ -901,8 +899,8 @@ const officeHasMembership = (schedule) => {
     const st = schedule[0].startTime;
     const et = schedule[0].endTime;
     if(st == et && st == 0) return;
-    if(st == et && Math.abs(et-st) == 0) return true;
-    return false;
+    if(st == et && Math.abs(et-st) == 0) return;
+    return true;
 }
 
 const isOfficeMembershipExpired = (schedule) => {

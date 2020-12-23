@@ -140,6 +140,11 @@ form .mdc-text-field {
 .plan-dialog .mdc-dialog__surface {
     min-width: 480px;
 }
+@media(max-width:480px) {
+    .plan-dialog .mdc-dialog__surface {
+        min-width: 320px;
+    }
+}
 .plan-dialog .mdc-dialog__title {
     font-weight: 600;
     text-align: left;

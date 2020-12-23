@@ -118,10 +118,12 @@ const init = (office, officeId) => {
             document.getElementById('pay-now').addEventListener('click', () => {
                 if (!auth.displayName) {
                     setHelperInvalid(nameField, 'Please set your name');
+                    choosePlanDialog.close()
                     return
                 }
                 if (!auth.email) {
                     setHelperInvalid(emailField, 'Please set your email');
+                    choosePlanDialog.close()
                     return
                 }
 

@@ -304,8 +304,8 @@ var handleAuthUpdate = function handleAuthUpdate(authProps) {
       return firebase.auth().currentUser.sendEmailVerification();
     }).then(resolve).catch(function (authError) {
       console.log(authError);
-      authError.type = 'auth';
-      if (authError.code === 'auth/requires-recent-login') return resolve();
+      authError.type = 'auth'; // if (authError.code === 'auth/requires-recent-login') return reject()
+
       reject(authError);
     });
   });
@@ -858,8 +858,11 @@ var hasValidSchedule = function hasValidSchedule(schedule) {
 
 var officeHasMembership = function officeHasMembership(schedule) {
   if (!hasValidSchedule(schedule)) return false;
-  if (schedule[0].startTime || schedule[0].endTime) return true;
-  return false;
+  var st = schedule[0].startTime;
+  var et = schedule[0].endTime;
+  if (st == et && st == 0) return;
+  if (st == et && Math.abs(et - st) == 0) return;
+  return true;
 };
 
 var isOfficeMembershipExpired = function isOfficeMembershipExpired(schedule) {

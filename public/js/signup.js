@@ -165,6 +165,9 @@ const decrementProgress = () => {
     journeyBar.progress = journeyBar.foundation.progress - 0.16666666666666666
 }
 
+
+
+
 const initJourney = () => {
     onboarding_data_save.init();
     journeyPrevBtn.addEventListener('click', function (e) {
@@ -176,30 +179,23 @@ const initJourney = () => {
         const searchParams = new URLSearchParams(window.location.search)
         const isRenew = searchParams.get('renew') && searchParams.get('renew') === "1"
         const newUser = searchParams.get('new_user') && searchParams.get('new_user') === "1";
-
-
-        if(searchParams.get("new_office")) {
-            onboarding_data_save.set({
-                status: 'PENDING'
-            })
-            history.pushState(history.state, null, basePathName + `?new_user=1#welcome`)
-            initFlow();
-            return
-        }
-
-        if(!isAdmin(idTokenResult) && newUser) {
-            onboarding_data_save.set({
-                status: 'PENDING'
-            })
-            history.pushState(history.state, null, basePathName + `?new_user=1#welcome`)
-            initFlow();
-            return
-        }
-        
         const office = searchParams.get('office');
+
+        if(!isAdmin(idTokenResult) && newUser && !office) {
+            onboarding_data_save.set({
+                status: 'PENDING'
+            })
+            history.pushState(history.state, null, basePathName + `?new_user=1#welcome`)
+            initFlow();
+            return
+        }
+
+      
+        if(!office) return redirect('/index.html')
         journeyContainer.innerHTML = `<div class='center-screen'><div class="lds-ring"><div></div><div></div><div></div><div></div></div><p>Please wait</p></div>`
         http('GET', `${appKeys.getBaseUrl()}/api/office?office=${office}`).then(officeMeta => {
             if (!officeMeta.results.length) {
+                if(office) return initJourney();
                 onboarding_data_save.set({
                     status: 'PENDING'
                 })
@@ -237,7 +233,6 @@ const initJourney = () => {
                 handlePayment(data, Number(searchParams.get("plan")))
                 return
             };
-            history.pushState(history.state, null, basePathName + `#choosePlan`);
             choosePlan();
         }).catch(console.error)
     })
@@ -369,6 +364,13 @@ function initFlow() {
 
         }).catch(function (error) {
             nextBtn.removeLoader()
+            if(error.code === 'auth/requires-recent-login') {
+                alert("You need to login again. Signing out ...");
+                setTimeout(()=>{
+                    signOut();
+                },200)
+                return
+            }
             const message = getEmailErrorMessage(error);
             if (message) {
                 setHelperInvalid(emailFieldInit, message);
@@ -759,9 +761,13 @@ function officeFlow(category = onboarding_data_save.get().category) {
             sendOfficeRequest(officeRequest).then(res => {
                 if (res.officeId) {
                     officeData.officeId = res.officeId;
-                }
+                };
+
                 officeData.pstart = Date.now();
-                officeData.name = res.office;
+                if(res.office) {
+                    officeData.name = res.office;
+                }
+
                 handleOfficeRequestSuccess(officeData);
                 if (window.fbq) {
                     fbq('trackCustom', 'Office Created')
@@ -862,7 +868,10 @@ const getPlans = (schedule = []) => {
     return plans;
 }
 
+
+
 function choosePlan() {
+    
 
     const officeData = onboarding_data_save.get();
     document.body.scrollTop = 0
@@ -1944,8 +1953,8 @@ const createRequestBodyForOffice = (officeData) => {
         url = `${appKeys.getBaseUrl()}/api/activities/update`;
         const template = {
             schedule: [{
-                endTime: 0,
-                startTime: 0,
+                endTime: Date.now(),
+                startTime: Date.now(),
                 name: 'Membership'
             }],
             venue: [],

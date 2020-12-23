@@ -156,7 +156,7 @@ window.addEventListener('popstate', function (ev) {
   }
 
   if (fnName === redirect) {
-    redirect('/join');
+    redirect('/join.html');
     return;
   }
 
@@ -195,10 +195,11 @@ var initJourney = function initJourney() {
   firebase.auth().currentUser.getIdTokenResult().then(function (idTokenResult) {
     //if new user start with welcome screen
     var searchParams = new URLSearchParams(window.location.search);
-    var newOfficeCreation = searchParams.get('createNew');
     var isRenew = searchParams.get('renew') && searchParams.get('renew') === "1";
+    var newUser = searchParams.get('new_user') && searchParams.get('new_user') === "1";
+    var office = searchParams.get('office');
 
-    if (!isAdmin(idTokenResult) || newOfficeCreation) {
+    if (!isAdmin(idTokenResult) && newUser && !office) {
       onboarding_data_save.set({
         status: 'PENDING'
       });
@@ -207,11 +208,11 @@ var initJourney = function initJourney() {
       return;
     }
 
-    ;
-    var office = searchParams.get('office');
+    if (!office) return redirect('/index.html');
     journeyContainer.innerHTML = "<div class='center-screen'><div class=\"lds-ring\"><div></div><div></div><div></div><div></div></div><p>Please wait</p></div>";
     http('GET', "".concat(appKeys.getBaseUrl(), "/api/office?office=").concat(office)).then(function (officeMeta) {
       if (!officeMeta.results.length) {
+        if (office) return initJourney();
         onboarding_data_save.set({
           status: 'PENDING'
         });
@@ -250,7 +251,6 @@ var initJourney = function initJourney() {
       }
 
       ;
-      history.pushState(history.state, null, basePathName + "#choosePlan");
       choosePlan();
     }).catch(console.error);
   });
@@ -364,6 +364,15 @@ function initFlow() {
       journeyPrevBtn.classList.remove('hidden');
     }).catch(function (error) {
       nextBtn.removeLoader();
+
+      if (error.code === 'auth/requires-recent-login') {
+        alert("You need to login again. Signing out ...");
+        setTimeout(function () {
+          signOut();
+        }, 200);
+        return;
+      }
+
       var message = getEmailErrorMessage(error);
 
       if (message) {
@@ -752,8 +761,13 @@ function officeFlow() {
           officeData.officeId = res.officeId;
         }
 
+        ;
         officeData.pstart = Date.now();
-        officeData.name = res.office;
+
+        if (res.office) {
+          officeData.name = res.office;
+        }
+
         handleOfficeRequestSuccess(officeData);
 
         if (window.fbq) {
@@ -838,7 +852,8 @@ var handleOfficeRequestSuccess = function handleOfficeRequestSuccess(officeData)
   onboarding_data_save.set({
     'category': officeData.category
   });
-  history.pushState(history.state, null, basePathName + "".concat(window.location.search, "#choosePlan"));
+  console.log(window.location.search);
+  history.pushState(history.state, null, basePathName + "".concat(window.location.search ? "".concat(window.location.search, "&office=").concat(encodeURIComponent(officeData.name)) : "?office=".concat(encodeURIComponent(officeData.name)), "#choosePlan"));
   incrementProgress();
   choosePlan();
 };
@@ -1829,8 +1844,8 @@ var createRequestBodyForOffice = function createRequestBodyForOffice(officeData)
     url = "".concat(appKeys.getBaseUrl(), "/api/activities/update");
     var template = {
       schedule: [{
-        endTime: 0,
-        startTime: 0,
+        endTime: Date.now(),
+        startTime: Date.now(),
         name: 'Membership'
       }],
       venue: [],

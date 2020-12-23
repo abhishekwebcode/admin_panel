@@ -71,8 +71,7 @@ var init = function init(office, officeId) {
   getOfficeActivity(officeId).then(function (activity) {
     var endTime = activity.schedule[0].endTime;
     console.log("end Time", new Date(endTime));
-    console.log("start Time", new Date(activity.schedule[0].startTime)); // console.log(moment.duration(moment(endTime).diff(moment(),'months',true),'months'))
-
+    console.log("start Time", new Date(activity.schedule[0].startTime));
     document.getElementById('start-date').textContent = activity.schedule[0].startTime ? moment(activity.schedule[0].startTime).format('DD MMM YYYY') : '-';
     document.getElementById('end-date').textContent = endTime ? moment(endTime).format('DD MMM YYYY') : '-';
     document.getElementById('days-left').textContent = endTime ? getMemberShipEnd(endTime, Date.now()) : '-';
@@ -81,8 +80,7 @@ var init = function init(office, officeId) {
     var progressBar = document.getElementById('data-table-progress-bar').MDCLinearProgress;
     progressBar.open();
     getMemberShipDetails(officeId).then(function (response) {
-      console.log(response); // clearError();
-
+      console.log(response);
       var subscriptions = response.results;
 
       if (!subscriptions.length) {
@@ -124,11 +122,13 @@ var init = function init(office, officeId) {
       document.getElementById('pay-now').addEventListener('click', function () {
         if (!auth.displayName) {
           setHelperInvalid(nameField, 'Please set your name');
+          choosePlanDialog.close();
           return;
         }
 
         if (!auth.email) {
           setHelperInvalid(emailField, 'Please set your email');
+          choosePlanDialog.close();
           return;
         }
 
