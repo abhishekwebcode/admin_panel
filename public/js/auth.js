@@ -30,7 +30,7 @@ const initFirebaseUI = () => {
             },
             defaultCountry: 'IN',
         }],
-    
+
         signInFlow: 'popup',
         tosUrl: 'https://growthfile.com/legal#terms-of-use-user',
         privacyPolicyUrl: 'https://growthfile.com/legal#privacy-policy'
@@ -41,9 +41,11 @@ const initFirebaseUI = () => {
 (function () {
     const searchParams = new URLSearchParams(window.location.search);
     document.getElementById('auth-header').textContent = searchParams.has('signup') ? 'Sign up' : 'Log In';
-    firebase.auth().onAuthStateChanged(user=>{
-        if(!user) return initFirebaseUI();
-        debugger;
+    const authListener = firebase.auth().onAuthStateChanged(user => {
+        if (!user) {
+            authListener()
+            return initFirebaseUI();
+        }
         authSuccess();
     })
 }());
