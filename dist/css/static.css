@@ -12,37 +12,6 @@
 }
 
 
-/** meta **/
-/* @media (prefers-color-scheme: dark) {
-
-  :root {
-    --mdc-theme-primary: #0d1f2d;
-    --mdc-theme-secondary: #ffffff;
-    --mdc-theme-text-secondary-on-background:#ffffff;
-  }
-
-  body,
-  .mdc-top-app-bar {
-    background-color: var(--mdc-theme-primary);
-    color: var(--mdc-theme-secondary);
-  }
-
-  :not(.mdc-list--non-interactive)>:not(.mdc-list-item--disabled).mdc-list-item::before,
-  :not(.mdc-list--non-interactive)>:not(.mdc-list-item--disabled).mdc-list-item::after {
-    background-color: var(--mdc-theme-secondary)
-  }
-
-  .mdc-list, .material-icons {
-    color: var(--mdc-theme-secondary) !important;
-  }
-
-  .mdc-button--raised {
-    color: var(--mdc-theme-secondary);
-    border: 1px solid var(--mdc-theme-secondary);
-    background-color: var(--mdc-theme-primary) !important;
-  }
-} */
-
 .content-max-width {
   max-width: 1140px;
   margin: 0 auto;
@@ -2750,4 +2719,15 @@ input:-webkit-autofill:focus {
   100% {
     transform: rotate(360deg);
   }
+}
+
+.mdl-button--raised.mdl-button--colored {
+  background:var(--mdc-theme-primary);
+  color: rgb(255,255,255);
+} 
+.firebaseui-textfield.mdl-textfield .firebaseui-label::after , .mdl-button--raised.mdl-button--colored:active , .mdl-button--raised.mdl-button--colored:hover, .mdl-button--raised.mdl-button--colored:focus:not(:active) {
+  background-color: var(--mdc-theme-primary);
+}
+ .mdl-button--primary.mdl-button--primary {
+  color: var(--mdc-theme-primary);
 }

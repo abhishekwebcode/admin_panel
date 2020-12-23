@@ -766,28 +766,22 @@ var handleRecaptcha = function handleRecaptcha(buttonId) {
   });
 };
 
-function handleAuthAnalytics(result) {
-  console.log(result);
+var handleAuthAnalytics = function handleAuthAnalytics(authResult, tokenResult) {
+  console.log(authResult);
   if (!window.fbq) return;
 
-  if (!result) {
-    fbq('trackCustom', 'login');
+  if (authResult && authResult.additionalUserInfo.isNewUser) {
+    if (isAdmin(tokenResult)) {
+      fbq('trackCustom', 'Sign Up Admin');
+      return;
+    }
+
+    fbq('trackCustom', 'Sign Up');
     return;
   }
 
-  if (result && !result.additionalUserInfo) return;
-
-  if (result.additionalUserInfo.isNewUser) {
-    firebase.auth().currentUser.getIdTokenResult().then(function (tokenResult) {
-      if (isAdmin(tokenResult)) {
-        fbq('trackCustom', 'Sign Up Admin');
-      } else {
-        fbq('trackCustom', 'Sign Up');
-      }
-    });
-    return;
-  }
-}
+  fbq('trackCustom', 'login');
+};
 /**
  * convert image to base64
  * @param {Event} evt 

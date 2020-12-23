@@ -1,5 +1,5 @@
 function AppKeys() {
-  this.mode = 'dev';
+  this.mode = 'production';
 }
 
 AppKeys.prototype.getMode = function () {
@@ -68,4 +68,6 @@ AppKeys.prototype.getIframeDomain = function () {
 };
 
 var appKeys = new AppKeys();
-firebase.initializeApp(appKeys.getKeys());
+firebase.initializeApp(appKeys.getKeys()); // if (appKeys.getMode() === 'dev') {
+//   firebase.auth().settings.appVerificationDisabledForTesting = true
+// }

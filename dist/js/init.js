@@ -1,21 +1,3 @@
-function initializeLogIn(el) {
-  firebase.auth().onAuthStateChanged(function (user) {
-    if (document.getElementById('app-bar-signup')) {
-      document.getElementById('app-bar-signup').classList.remove('hidden');
-    }
-
-    if (!user) {
-      document.body.classList.remove('hidden');
-      login(el);
-      return;
-    }
-
-    ;
-    flushStoredErrors();
-    sendAcqusition().then(handleLoggedIn).catch(handleLoggedIn);
-  });
-}
-
 var sendAcqusition = function sendAcqusition() {
   var param = parseURL();
   if (!param) return Promise.resolve();
@@ -33,7 +15,7 @@ var sendAcqusition = function sendAcqusition() {
  */
 
 
-function handleLoggedIn(isNewUser) {
+function handleLoggedIn(authResult) {
   var param = parseURL();
 
   if (window.location.pathname === '/welcome' && param && param.get('action') === 'get-subscription') {
@@ -42,7 +24,7 @@ function handleLoggedIn(isNewUser) {
   }
 
   ;
-  handleAuthRedirect(isNewUser);
+  handleAuthRedirect(authResult);
 }
 /**
  * If user is privileged then redirect them to /join page
@@ -66,8 +48,9 @@ var handleWelcomePage = function handleWelcomePage() {
  */
 
 
-var handleAuthRedirect = function handleAuthRedirect() {
+var handleAuthRedirect = function handleAuthRedirect(authResult) {
   firebase.auth().currentUser.getIdTokenResult().then(function (idTokenResult) {
+    handleAuthAnalytics(authResult, idTokenResult);
     if (idTokenResult.claims.support) return redirect('/support');
     if (idTokenResult.claims.admin && idTokenResult.claims.admin.length > 0) return redirect('/admin/index.html');
     redirect('/join.html?new_user=1');
