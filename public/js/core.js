@@ -807,23 +807,14 @@ const handleRecaptcha = (buttonId) => {
 
 
 const handleAuthAnalytics = (authResult, tokenResult) => {
-    // if (!result) {
-    //     fbq('trackCustom', 'login');
-    //     return
-    // }
-
-    // if (result && !result.additionalUserInfo) return;
     console.log(authResult);
     if (!window.fbq) return;
-    if (authResult.additionalUserInfo.isNewUser) {
-
-        // firebase.auth().currentUser.getIdTokenResult().then(function (tokenResult) {
+    if (authResult && authResult.additionalUserInfo.isNewUser) {
         if (isAdmin(tokenResult)) {
             fbq('trackCustom', 'Sign Up Admin');
             return
         }
         fbq('trackCustom', 'Sign Up');
-        // })
         return
     }
     fbq('trackCustom', 'login');

@@ -1,15 +1,20 @@
-(function () {
-    const loader = document.getElementById('login-loader');
+const authSuccess = (authResult) => {
+    sendAcqusition().then(() => {
+        handleLoggedIn(authResult);
+    }).catch(error => {
+        handleLoggedIn(authResult);
+    });
+}
 
+const initFirebaseUI = () => {
+    const loader = document.getElementById('login-loader');
     const ui = new firebaseui.auth.AuthUI(firebase.auth());
     ui.start('#firebaseui-auth-container', {
         callbacks: {
             signInSuccessWithAuthResult: function (authResult, redirectUrl) {
-                sendAcqusition().then(() => {
-                    handleLoggedIn(authResult);
-                }).catch(error => {
-                    handleLoggedIn(authResult);
-                });
+                console.log(authResult)
+                debugger;
+                authSuccess(authResult)
                 return;
             },
             uiShown: function () {
@@ -30,26 +35,15 @@
         tosUrl: 'https://growthfile.com/legal#terms-of-use-user',
         privacyPolicyUrl: 'https://growthfile.com/legal#privacy-policy'
     })
+
+}
+
+(function () {
+    const searchParams = new URLSearchParams(window.location.search);
+    document.getElementById('auth-header').textContent = searchParams.has('signup') ? 'Sign up' : 'Log In';
+    firebase.auth().onAuthStateChanged(user=>{
+        if(!user) return initFirebaseUI();
+        debugger;
+        authSuccess();
+    })
 }());
-
-
-
-window.addEventListener('load', () => {
-    // const searchParams = new URLSearchParams(window.location.search);
-    // const box = document.getElementById('home-login')
-    // box.classList.remove('hidden')
-    // if (!searchParams.has('signup')) {
-    //     initializeLogIn(box)
-    //     return
-    // }
-    // const authListener = firebase.auth().onAuthStateChanged(function (user) {
-    //     if (!user) {
-    //         authListener()
-    //         return initAuthBox();
-    //     }
-    //     flushStoredErrors();
-    //     sendAcqusition().then(handleLoggedIn).catch(err => {
-    //         redirect('/admin/index.html')
-    //     })
-    // });
-})

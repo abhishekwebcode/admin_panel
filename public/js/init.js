@@ -9,7 +9,6 @@ const sendAcqusition = () => {
     office: param.get('office'),
   })
 }
-
 /**
  * Handles a logged in user.
  * @param {Boolean} isNewUser 

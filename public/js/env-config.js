@@ -63,3 +63,6 @@ AppKeys.prototype.getIframeDomain = function () {
 
 var appKeys = new AppKeys();
 firebase.initializeApp(appKeys.getKeys());
+if (appKey.getMode() === 'dev') {
+  firebase.auth().settings.appVerificationDisabledForTesting = true
+}
