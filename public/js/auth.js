@@ -13,7 +13,6 @@ const initFirebaseUI = () => {
         callbacks: {
             signInSuccessWithAuthResult: function (authResult, redirectUrl) {
                 console.log(authResult)
-                debugger;
                 authSuccess(authResult)
                 return;
             },

@@ -2751,3 +2751,14 @@ input:-webkit-autofill:focus {
     transform: rotate(360deg);
   }
 }
+
+.mdl-button--raised.mdl-button--colored {
+  background:var(--mdc-theme-primary);
+  color: rgb(255,255,255);
+} 
+.firebaseui-textfield.mdl-textfield .firebaseui-label::after , .mdl-button--raised.mdl-button--colored:active , .mdl-button--raised.mdl-button--colored:hover, .mdl-button--raised.mdl-button--colored:focus:not(:active) {
+  background-color: var(--mdc-theme-primary);
+}
+ .mdl-button--primary.mdl-button--primary {
+  color: var(--mdc-theme-primary);
+}
