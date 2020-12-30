@@ -2,9 +2,6 @@
 <head>
     <title>Growthfile - Support</title>
     <script crossorigin="anonymous"
-            integrity="sha512-zhDD6mpjQmjTOqcC2jd9iRgxmAlk/pmCCUPjKA9XWbcmvk7o0Jr8/9Dr0qQ5V54DPQJcRgCvlgFrtWMxgRjSOQ=="
-            src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.1.1/exceljs.min.js"></script>
-    <script crossorigin="anonymous"
             integrity="sha512-qTXRIMyZIFb8iQcfjXWCO8+M5Tbc38Qi5WzdPOYZHIlZpzBHG3L3by84BBBOiRGiEb7KKtAOAs5qYdUiZiQNNQ=="
             src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
     <script
@@ -27,6 +24,11 @@
             href="https://fonts.googleapis.com/icon?family=Roboto:300,400,500|Material+Icons"
             rel="stylesheet"
     />
+    <script src="https://www.gstatic.com/firebasejs/7.6.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.6.2/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/ui/4.3.0/firebase-ui-auth.js"></script>
+    <script src="/js/env-config.js"></script>
+    <script src="/js/core.js"></script>
     <style>
         .container {
             margin-left: 30px !important;
@@ -110,10 +112,26 @@
         <div class="row">
             <div class="col-12">
                 <h1>
-                    Attendance Report
+                    Reports
                 </h1>
             </div>
-            <div class="col-3">
+            <div class="col-2">
+                <div class="form-group">
+                    <label>Report Type:</label>
+                    <select class="form-control attendanceReportType">
+                        <option value="employeeActivity">Employee Activity</option>
+                        <option value="location">Location Report</option>
+                        <option value="monthlyAttendance">Monthly Attendance</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-1">
+                <div class="form-group">
+                    <label>Day:</label>
+                    <input class="form-control attendanceDay" max="31" min="1">
+                </div>
+            </div>
+            <div class="col-2">
                 <div class="form-group">
                     <label>Month:</label>
                     <select class="form-control attendanceMonth">
@@ -132,7 +150,7 @@
                     </select>
                 </div>
             </div>
-            <div class="col-3">
+            <div class="col-2">
                 <div class="form-group">
                     <label>Year:</label>
                     <input class="form-control attendanceYear">
@@ -147,7 +165,7 @@
                     </select>
                 </div>
             </div>
-            <div class="col-3">
+            <div class="col-2">
                 <button class="btn btn-primary" onclick="attendanceReport()">
                     Download Attendance
                 </button>
@@ -210,11 +228,6 @@
     </div>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/7.6.2/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/7.6.2/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/ui/4.3.0/firebase-ui-auth.js"></script>
-<script src="/js/env-config.js"></script>
-<script src="/js/core.js"></script>
 
 <script>
   const appKey = new AppKeys();
@@ -494,6 +507,12 @@
 
   /// NEW SEARCH FUNCTION END
 
+  function showTemplate(templateName) {
+    document.querySelectorAll('.templateJSON').forEach(element => element.style.display = 'none')
+    document.querySelectorAll('.templateButton').forEach(element => element.style.display = 'none')
+    document.querySelectorAll(`[template=${templateName}]`).forEach(element => element.style.display = 'block')
+  }
+
   function getTempaltes() {
     http('GET', `${getApiEndpoint()}/services/support/getTemplates`).then(function (response) {
       //Response ok. Work with the data returned
@@ -504,14 +523,16 @@
         <hr>
                     <div class='template'>
         <h2>Template: ${document.name}</h2>
-        <button class="btn btn-info" onclick='createDocument("${
+        <button class="btn btn-info" onclick='showTemplate("${document.name}")'>Show Template</button>
+        <button class="templateButton btn btn-info" class="btn btn-info" template='${document.name}' onclick='createDocument("${
             document.name
-        }")'>Create Document</button>
-        <pre>${JSON.stringify(document, 0, 4)}</pre>
-        </div>
-        <hr>          `;
+        }")'>Create Document ${document.name}</button>
+        <pre class="templateJSON" template='${document.name}'>${JSON.stringify(document, 0, 4)}</pre>
+        </div>`;
       });
       document.querySelector('.templatesDom').innerHTML = (htmlString);
+      document.querySelectorAll('.templateJSON').forEach(element => element.style.display = 'none')
+      document.querySelectorAll('.templateButton').forEach(element => element.style.display = 'none')
     }).catch(function (err) {
 
       console.log({err})
@@ -524,18 +545,18 @@
    * Bulk Upload start
    */
   function bulkUpload() {
-    var files = document.querySelector('.bulkFile').files,
+    const files = document.querySelector('.bulkFile').files,
         f = files[0];
-    var reader = new FileReader();
+    const reader = new FileReader();
     reader.onload = function (e) {
-      var workbook = XLSX.read(e.target.result, {type: "binary"});
-      var wopts = {
+      const workbook = XLSX.read(e.target.result, {type: "binary"});
+      const wopts = {
         bookType: "xlsx",
         bookSST: false,
         type: "binary",
       };
       /* DO SOMETHING WITH workbook HERE */
-      var outputString = XLSX.write(workbook, wopts);
+      const outputString = XLSX.write(workbook, wopts);
       let office = document.querySelector('.bulkOffice').value;
       const officeFromDropDown = document.querySelector('.officeDropDown').value;
       if (officeFromDropDown) {
@@ -570,33 +591,35 @@
     reader.readAsBinaryString(f);
   }
 
-  const yellowFill = {
-    type: 'pattern',
-    pattern: 'solid',
-    fgColor: {
-      argb: 'FFFFFF00'
-    },
-
-  };
-  const redFill = {
-    type: 'pattern',
-    pattern: 'solid',
-    fgColor: {
-      argb: 'FFFF0000'
-    },
-  };
-
-  const font = {
-    name: 'Arial',
-    bold: true
-  }
-  const CELL_WIDTH = 8.43;
-  const COL_WIDTH = 9;
-  const ROW_HEIGHT = 20;
-
   function monthToMonthName(month) {
-    return moment.months()[month];
+    const monthsList = [
+      'January', 'February',
+      'March', 'April',
+      'May', 'June',
+      'July', 'August',
+      'September', 'October',
+      'November', 'December'
+    ];
+    return monthsList[month];
   }
+
+  /**
+   * Get report Name */
+  function getReportName({reportType, day, month, year, office}) {
+    let momentObject = moment().year(year).month(month);
+    if (day) momentObject = momentObject.date(day);
+    const dateString = momentObject.format('MMMM YYYY')
+    if (reportType === "monthlyAttendance") {
+      return `|${office}| OnDuty Monthly Attendance report | ${dateString}`
+    }
+    if (reportType === "employeeActivity") {
+      return `|${office}| OnDuty employee activity report | ${dateString}`
+    }
+    if (reportType === "location") {
+      return `|${office}| OnDuty location report | ${dateString}`
+    }
+  }
+
 
   /**
    * Attendance Download start
@@ -608,173 +631,66 @@
     if (officeFromDropDown) {
       office = officeFromDropDown;
     }
+    const reportType = document.querySelector('.attendanceReportType').value;
+    const day = Number.parseInt(document.querySelector('.attendanceDay').value);
     const month = Number.parseInt(document.querySelector('.attendanceMonth').value);
     const year = Number.parseInt(document.querySelector('.attendanceYear').value);
-    const promptText = `Attendance of office: |${office}| for MONTH: |${monthToMonthName(month)}| with YEAR: |${year}|`;
+    const promptText = `|${reportType}| REPORT of office: |${office}| for DAY: |${day}| for MONTH: |${monthToMonthName(month)}| with YEAR: |${year}|`;
     console.dir({
-      promptText, office, month, year,
+      promptText, office, month, year, reportType
     })
     const outputLabel = document.querySelector('.attendanceOutput')
     outputLabel.innerHTML = ``;
     if (confirm(promptText)) {
       outputLabel.innerHTML = `Requesting....`;
-
-      http('GET', `${appKeys.getBaseUrl()}/api/office/${office}/attendance/?month=${month}&year=${year}&support=true`).then(response => {
-        outputLabel.innerHTML += `\n<br> Response Received... Making Excel...`;
-        console.log(response)
-        Object.keys(response).forEach(date => {
-          if (moment(date, 'Do MMM YYYY').valueOf() > moment().valueOf()) {
-            delete response[date]
+      const urlObject = new URL(`${appKeys.getBaseUrl()}/api/office/${office}/report/`);
+      urlObject.searchParams.append('support', 'true');
+      urlObject.searchParams.append('month', month);
+      urlObject.searchParams.append('year', year);
+      urlObject.searchParams.append('day', day);
+      urlObject.searchParams.append('name', reportType);
+      outputLabel.innerHTML += `\n<br> Getting Bearer Token... `;
+      let fileName = getReportName({reportType, day, month, year, office});
+      getIdToken().then(bearerToken => {
+        outputLabel.innerHTML += `\n<br> Making Request.... `;
+        fetch(urlObject.toString(), {
+          method: 'GET',
+          body: null,
+          headers: {
+            'Authorization': `Bearer ${bearerToken}`
           }
         })
-        const employees = {}
-        const dates = Object.keys(response);
-        if (!dates.length) {
-          outputLabel.innerHTML += '\n<br>  No check-ins found';
-          return
-        }
-
-        const workbook = new ExcelJS.Workbook();
-        workbook.creator = 'Growthfile Analytics Pvt Ltd.';
-        workbook.created = new Date();
-        const sheet = workbook.addWorksheet('Attendance Report', {
-          views: [{
-            showGridLines: true
-          }]
-        });
-
-        /** set cell properties like width,height & font */
-        sheet.properties.defaultColWidth = COL_WIDTH;
-        sheet.properties.defaultRowHeight = ROW_HEIGHT;
-
-        sheet.mergeCells('A1:B1');
-        sheet.getCell('A1').value = `ATTENDANCE (${office}) ` + moment(Number(month) + 1, 'MM').format('MMM') + ` ${year}`
-        sheet.getCell('A1').alignment = {
-          horizontal: 'center'
-        }
-
-        /** start cell filling operation */
-        let startRowIndex = 3;
-        let endRowIndex = 5;
-
-        const subHeaders = []
-        dates.forEach((date, index) => {
-
-          response[date].forEach(employeeData => {
-
-            if (employees[employeeData.phoneNumber]) {
-              employees[employeeData.phoneNumber].dates.push(Object.assign(employeeData, {
-                date
-              }))
-              if (employeeData.startTime || employeeData.endTime) {
-                employees[employeeData.phoneNumber].totalDaysWorked++
+            .then(/**@type {Response} */response => {
+              outputLabel.innerHTML += `\n<br> Response Received... Downloading... `;
+              console.log(response)
+              if (response.status === 204) {
+                return response.text()
               }
-            } else {
-              employees[employeeData.phoneNumber] = {
-                employeeName: employeeData['employeeName'],
-                totalDays: dates.length,
-                totalDaysWorked: 0,
-                dates: [Object.assign(employeeData, {
-                  date
-                })],
+              return response.blob()
+            })
+            .then(/**@type {{data:string|Blob,fileName:string}} */reportData => {
+              if (!reportData) {
+                return outputLabel.innerHTML += '\n<br> -- No data found for this report for this day,month,year --';
               }
-              if (employeeData.startTime || employeeData.endTime) {
-                employees[employeeData.phoneNumber].totalDaysWorked = 1
-              }
-            }
-          })
-          try {
-            sheet.mergeCells(1, startRowIndex, 1, endRowIndex)
-            sheet.getRow(1).getCell(startRowIndex).value = date
-            subHeaders.push('start time', 'end time', 'hours')
-            startRowIndex = endRowIndex + 1
-            endRowIndex += 3
-          } catch (e) {
-            console.log(e)
-          }
-
-        })
-        subHeaders.push('TOTAL DAYS', 'DAYS WORKED')
-        const newHead = sheet.addRow([...['EMP NAME', 'MOBILE NO'], ...subHeaders])
-        newHead.alignment = {
-          horizontal: 'center'
-        }
-        Object.keys(employees).forEach(phoneNumber => {
-          const dateRangeArr = []
-          const item = employees[phoneNumber]
-          item.dates.forEach(date => {
-            let diff = null
-            if (date.endTime && date.startTime) {
-              diff = moment.utc(moment(date.endTime || '00', 'HH:mm').diff(moment(date.startTime, 'HH:mm'))).format('HH:mm');
-            }
-            // console.log(moment.utc(moment(date.endTime || '00','HH:mm').diff(moment(date.startTime,'HH:mm'))).format('HH:mm'))
-            dateRangeArr.push(date.startTime, date.endTime, diff)
-          })
-          dateRangeArr.push(item.totalDays, item.totalDaysWorked)
-          const newRow = sheet.addRow([...[item.employeeName, phoneNumber], ...dateRangeArr])
-
-          newRow.alignment = {
-            horizontal: 'center'
-          }
-
-          // start with first date  cell and find hour value
-          // if hours are not found mark date as absent
-          // if hours are less than 8 mark date as invalid (user didn't completed 8 hours)
-
-          for (i = 5; i < newRow.cellCount; i += 3) {
-            const hourCell = newRow.getCell(i);
-            const endTimeCell = newRow.getCell(i - 1);
-            const startTimeCell = newRow.getCell(i - 2);
-            if (newRow.getCell(i).value == null || newRow.getCell(i).value == undefined) {
-              sheet.mergeCells(newRow.getCell(i - 2).address, newRow.getCell(i).address)
-              hourCell.fill = redFill
-              endTimeCell.fill = redFill
-              startTimeCell.fill = redFill
-              startTimeCell.value = 'ABSENT'
-            } else if (moment(newRow.getCell(i).value, 'HH:mm').hour() < 8) {
-              hourCell.fill = yellowFill
-              endTimeCell.fill = yellowFill
-              startTimeCell.fill = yellowFill
-            }
-          }
-        })
-
-        sheet.getColumn(1).width = 15
-        sheet.getColumn(2).width = 15
-        sheet.getColumn(sheet.columnCount).width = 15;
-        sheet.getColumn(sheet.columnCount - 1).width = 15;
-        sheet.getRow(1).font = font
-        sheet.getRow(1).alignment = {
-          horizontal: 'center'
-        }
-
-        sheet.getColumn(1).font = font
-        sheet.getRow(2).font = font
-        sheet.getColumn(2).font = font
-
-
-        /** Download workbook */
-        workbook.xlsx.writeBuffer().then(data => {
-          var blob = new Blob([data], {
-            type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-          });
-          const url = window.URL.createObjectURL(blob);
-
-          const anchor = document.createElement('a');
-          anchor.href = url;
-          anchor.download = moment().format('Do MMM YYYY') + `Attendance: ${office}- ` + '.xlsx';
-          anchor.click();
-          outputLabel.innerHTML += `<br>\n |Excel Generated| at
-<a download="${moment().format('Do MMM YYYY') + `Attendance: ${office}- ` + '.xlsx'}"
-href="${url}"
->
-Download Excel for ${moment().format('Do MMM YYYY') + `Attendance: ${office}- ` + '.xlsx'}
-</a>
-
-`
-        })
-      }).catch(error => {
-        outputLabel.innerHTML += `<br>\n ` + JSON.stringify(error, 0, 3)
+              console.log(reportData)
+              const file = window.URL.createObjectURL(reportData);
+              const a = document.createElement('a');
+              a.href = file;
+              a.download = `${fileName}.xlsx`;
+              document.body.appendChild(a);
+              a.click();
+              a.remove();
+            })
+            .catch(/** @type {Error} */error => {
+              outputLabel.innerHTML += `<br>\n ` + JSON.stringify({
+                stack: error.stack,
+                message: error.message,
+                name: error.name
+              }, null, 3)
+            })
+      }).catch(e => {
+        console.error(e);
+        outputLabel.innerHTML += `\n<br> SORRY BEARER TOKEN ERROR `;
       })
 
     }
@@ -809,10 +725,9 @@ Download Excel for ${moment().format('Do MMM YYYY') + `Attendance: ${office}- ` 
         })
   }
 
-  function loadName(e) {
-    var files = document.querySelector('.bulkFile')
+  function loadName() {
+    const files = document.querySelector('.bulkFile')
     document.querySelector('.loadName').innerHTML = files.files[0].name;
-
   }
 
   window.eagerParse = false;
