@@ -182,12 +182,12 @@ const initJourney = () => {
         const office = searchParams.get('office');
 
         // if (!isAdmin(idTokenResult) && newUser && !office) {
-            onboarding_data_save.set({
-                status: 'PENDING'
-            })
-            history.pushState(history.state, null, basePathName + `?new_user=1#welcome`)
-            initFlow();
-            return
+        onboarding_data_save.set({
+            status: 'PENDING'
+        })
+        history.pushState(history.state, null, basePathName + `?new_user=1#welcome`)
+        initFlow();
+        return
         // }
 
 
@@ -584,15 +584,15 @@ function officeFlow(category = onboarding_data_save.get().category) {
     const officeContainer = createElement('div', {
         className: 'office-container'
     })
- 
-    
+
+
     const gstCont = createElement('div', {
         className: 'mdc-layout-grid__inner mt-20',
-        style:'width:100%'
+        style: 'width:100%'
     })
 
-    const gridText = createElement('div',{
-        className:'mdc-layout-grid__cell--span-3-phone mdc-layout-grid__cell--span-6-tablet mdc-layout-grid__cell--span-10-desktop'
+    const gridText = createElement('div', {
+        className: 'mdc-layout-grid__cell--span-3-phone mdc-layout-grid__cell--span-6-tablet mdc-layout-grid__cell--span-10-desktop'
     })
 
 
@@ -600,8 +600,8 @@ function officeFlow(category = onboarding_data_save.get().category) {
         required: true,
         id: 'gst-number',
         value: '',
-        label:'GSTIN Number',
-       
+        label: 'GSTIN Number',
+
     })
     gstNumberField.style.marginTop = '0px'
     gridText.appendChild(gstNumberField)
@@ -610,42 +610,44 @@ function officeFlow(category = onboarding_data_save.get().category) {
     const getOfficeDetails = createElement('button', {
         type: 'button',
         className: 'mdc-button mdc-button--raised mdc-layout-grid__cell--span-1-phone mdc-layout-grid__cell--span-2-tablet mdc-layout-grid__cell--span-2-desktop',
-        style:'height:56px',
+        style: 'height:56px',
         textContent: 'Search'
     })
     getOfficeDetails.addEventListener('click', () => {
-        if(!gstNumber.value) {
-            setHelperInvalid(gstNumber,'GST Number cannot be empty')
+        if (!gstNumber.value) {
+            setHelperInvalid(gstNumber, 'GST Number cannot be empty')
             return
         }
-        if(!isGstNumberValid) {
-            setHelperInvalid(gstNumber,'GST Number is incorrect')
+        if (!isGstNumberValid) {
+            setHelperInvalid(gstNumber, 'GST Number is incorrect')
             return
         }
 
         http('GET', `${appKeys.getBaseUrl()}/api/services/gstLookupOffice?gst=${gstNumber.value}`)
-            .then(gstResult=>{
+            .then(gstResult => {
                 setHelperValid(gstNumber)
 
-                gstResult.gstNumber = gstNumber.value,
-                gstResult.category = category
+                gstResult.gstNumber = gstNumber.value;
+                gstResult.category = category;
                 showOfficeForm(gstResult)
             }).catch(error => {
-                switch(error.message) {
+                switch (error.message) {
                     case 'gst number is not valid':
+                        setHelperInvalid(gstNumber, 'GST Number is incorrects')
                         break;
-                    case ''
+                    default:
+                        setHelperInvalid(gstNumber, error.message)
+                        break;
                 }
-                setHelperInvalid(gstNumber, error.message)
             })
     })
-    
-   
+
+
     gstCont.appendChild(gridText)
     gstCont.appendChild(getOfficeDetails)
-    officeContainer.appendChild(createElement('p',{
-        className:'',
-        textContent:'GSTIN helps us generate accurate E-invoices for you'
+    officeContainer.appendChild(createElement('p', {
+        className: '',
+        textContent: 'GSTIN helps us generate accurate E-invoices for you'
     }))
     officeContainer.appendChild(gstCont)
     // officeContainer.appendChild(detailsCont)
@@ -653,15 +655,15 @@ function officeFlow(category = onboarding_data_save.get().category) {
     journeyContainer.innerHTML = ''
     journeyContainer.appendChild(officeContainer)
     const nxtButton = nextButton();
-    nxtButton.element.setAttribute('disabled','true')
+    nxtButton.element.setAttribute('disabled', 'true')
     actionsContainer.appendChild(nxtButton.element);
     document.body.scrollTop = 0;
 };
 
-const showOfficeForm = (officeMeta,nxtButton) => {
-    const detailsCont =  createElement('div',{
-        id:'details-cont',
-        className:'mt-20'
+const showOfficeForm = (officeMeta, nxtButton) => {
+    const detailsCont = createElement('div', {
+        id: 'details-cont',
+        className: 'mt-20'
     })
     detailsCont.innerHTML = ''
 
@@ -772,9 +774,9 @@ const showOfficeForm = (officeMeta,nxtButton) => {
         })
     });
 
-    
+
     nxtButton.element.addEventListener('click', () => {
-        
+
         if (inputFields.year.value && !isValidYear(inputFields.year.value)) {
             setHelperInvalid(inputFields.year, 'Enter correct year');
             return
