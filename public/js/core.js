@@ -821,7 +821,6 @@ const handleAuthAnalytics = (authResult, tokenResult) => {
 }
 
 
-
 /**
  * convert image to base64
  * @param {Event} evt 
@@ -871,6 +870,7 @@ const setHelperInvalid = (field, message) => {
     field.foundation.setValid(false)
     field.foundation.adapter.shakeLabel(true);
     if (message) {
+        console.log(field)
         field.helperTextContent = message;
     }
 }

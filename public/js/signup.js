@@ -181,21 +181,21 @@ const initJourney = () => {
         const newUser = searchParams.get('new_user') && searchParams.get('new_user') === "1";
         const office = searchParams.get('office');
 
-        if(!isAdmin(idTokenResult) && newUser && !office) {
+        // if (!isAdmin(idTokenResult) && newUser && !office) {
             onboarding_data_save.set({
                 status: 'PENDING'
             })
             history.pushState(history.state, null, basePathName + `?new_user=1#welcome`)
             initFlow();
             return
-        }
+        // }
 
-      
-        if(!office) return redirect('/index.html')
+
+        if (!office) return redirect('/index.html')
         journeyContainer.innerHTML = `<div class='center-screen'><div class="lds-ring"><div></div><div></div><div></div><div></div></div><p>Please wait</p></div>`
         http('GET', `${appKeys.getBaseUrl()}/api/office?office=${office}`).then(officeMeta => {
             if (!officeMeta.results.length) {
-                if(office) return initJourney();
+                if (office) return initJourney();
                 onboarding_data_save.set({
                     status: 'PENDING'
                 })
@@ -219,8 +219,8 @@ const initJourney = () => {
                 template: 'office',
                 companyLogo: officeActivity.attachment['Company Logo'] ? officeActivity.attachment['Company Logo'].value : '',
                 schedule: officeActivity.schedule,
-                endTime:officeActivity.schedule[0].endTime,
-                pstart:getPaymentStart(officeActivity.schedule[0].endTime),
+                endTime: officeActivity.schedule[0].endTime,
+                pstart: getPaymentStart(officeActivity.schedule[0].endTime),
                 pend: getPaymentEnd(officeActivity.schedule[0].endTime),
             };
 
@@ -240,7 +240,7 @@ const initJourney = () => {
 
 const getPaymentStart = (endTime) => {
     const currentTs = Date.now();
-    if(currentTs > endTime) return currentTs;
+    if (currentTs > endTime) return currentTs;
     return endTime
 }
 
@@ -248,7 +248,7 @@ const getPaymentEnd = (endTime) => {
     const searchParams = new URLSearchParams(window.location.search);
     const currentTs = Date.now();
     const time = currentTs > endTime ? currentTs : endTime;
-    const duration = searchParams.get('renew') ? getDuration(Number(searchParams.get('plan')),time) : '';
+    const duration = searchParams.get('renew') ? getDuration(Number(searchParams.get('plan')), time) : '';
     return duration;
 }
 
@@ -364,11 +364,11 @@ function initFlow() {
 
         }).catch(function (error) {
             nextBtn.removeLoader()
-            if(error.code === 'auth/requires-recent-login') {
+            if (error.code === 'auth/requires-recent-login') {
                 alert("You need to login again. Signing out ...");
-                setTimeout(()=>{
+                setTimeout(() => {
                     signOut();
-                },200)
+                }, 200)
                 return
             }
             const message = getEmailErrorMessage(error);
@@ -570,8 +570,13 @@ const svgLoader = (source) => {
 };
 
 
-
-
+/**
+ * 
+ * @param {string} number 
+ */
+const isGstNumberValid = (number) => {
+    return /\d{2}[A-Z]{5}\d{4}[A-Z]{1}[A-Z\d]{1}[Z]{1}[A-Z\d]{1}/.test(number)
+}
 
 function officeFlow(category = onboarding_data_save.get().category) {
     incrementProgress();
@@ -579,15 +584,93 @@ function officeFlow(category = onboarding_data_save.get().category) {
     const officeContainer = createElement('div', {
         className: 'office-container'
     })
+ 
+    
+    const gstCont = createElement('div', {
+        className: 'mdc-layout-grid__inner mt-20',
+        style:'width:100%'
+    })
+
+    const gridText = createElement('div',{
+        className:'mdc-layout-grid__cell--span-3-phone mdc-layout-grid__cell--span-6-tablet mdc-layout-grid__cell--span-10-desktop'
+    })
+
+
+    const gstNumberField = textFieldOutlined({
+        required: true,
+        id: 'gst-number',
+        value: '',
+        label:'GSTIN Number',
+       
+    })
+    gstNumberField.style.marginTop = '0px'
+    gridText.appendChild(gstNumberField)
+    gridText.appendChild(textFieldHelper())
+    const gstNumber = new mdc.textField.MDCTextField(gstNumberField)
+    const getOfficeDetails = createElement('button', {
+        type: 'button',
+        className: 'mdc-button mdc-button--raised mdc-layout-grid__cell--span-1-phone mdc-layout-grid__cell--span-2-tablet mdc-layout-grid__cell--span-2-desktop',
+        style:'height:56px',
+        textContent: 'Search'
+    })
+    getOfficeDetails.addEventListener('click', () => {
+        if(!gstNumber.value) {
+            setHelperInvalid(gstNumber,'GST Number cannot be empty')
+            return
+        }
+        if(!isGstNumberValid) {
+            setHelperInvalid(gstNumber,'GST Number is incorrect')
+            return
+        }
+
+        http('GET', `${appKeys.getBaseUrl()}/api/services/gstLookupOffice?gst=${gstNumber.value}`)
+            .then(gstResult=>{
+                setHelperValid(gstNumber)
+
+                gstResult.gstNumber = gstNumber.value,
+                gstResult.category = category
+                showOfficeForm(gstResult)
+            }).catch(error => {
+                switch(error.message) {
+                    case 'gst number is not valid':
+                        break;
+                    case ''
+                }
+                setHelperInvalid(gstNumber, error.message)
+            })
+    })
+    
+   
+    gstCont.appendChild(gridText)
+    gstCont.appendChild(getOfficeDetails)
+    officeContainer.appendChild(createElement('p',{
+        className:'',
+        textContent:'GSTIN helps us generate accurate E-invoices for you'
+    }))
+    officeContainer.appendChild(gstCont)
+    // officeContainer.appendChild(detailsCont)
+
+    journeyContainer.innerHTML = ''
+    journeyContainer.appendChild(officeContainer)
+    const nxtButton = nextButton();
+    nxtButton.element.setAttribute('disabled','true')
+    actionsContainer.appendChild(nxtButton.element);
+    document.body.scrollTop = 0;
+};
+
+const showOfficeForm = (officeMeta,nxtButton) => {
+    const detailsCont =  createElement('div',{
+        id:'details-cont',
+        className:'mt-20'
+    })
+    detailsCont.innerHTML = ''
+
+    const frag = document.createDocumentFragment();
     const savedData = onboarding_data_save.get();
 
-    const companyName = textFieldOutlinedWithoutLabel({
-        required: true,
 
-        id: 'company-name',
-        autocomplete: 'organization',
-        value: savedData.name || ''
-    })
+
+
     const year = textFieldOutlined({
         type: 'number',
         label: 'Year',
@@ -632,22 +715,7 @@ function officeFlow(category = onboarding_data_save.get().category) {
         companyLogo = savedData.companyLogo;
         logoCont.appendChild(createImage(companyLogo, logo, companyLogo));
     };
-    const address = textAreaOutlined({
-        required: true,
-        label: 'Address',
-        autocomplete: 'address-line1',
-        id: 'address',
-        rows: 2,
-        value: savedData.registeredOfficeAddress || '',
-        cols: 8
-    })
-    const pincode = textFieldOutlinedWithoutLabel({
-        required: true,
-        type: 'number',
-        label: 'PIN code',
-        autocomplete: 'postal-code',
-        value: savedData.pincode || ''
-    });
+
 
     const description = textAreaOutlined({
         label: 'Description',
@@ -657,45 +725,30 @@ function officeFlow(category = onboarding_data_save.get().category) {
         value: savedData.description || ''
     })
 
-    const frag = document.createDocumentFragment();
-    officeContainer.appendChild(createElement('div', {
-        className: 'onboarding-content--text mdc-typography--headline6',
-        textContent: "Company name"
-    }));
-    officeContainer.appendChild(companyName);
-    officeContainer.appendChild(textFieldHelper())
-    officeContainer.appendChild(createElement('div', {
+
+    detailsCont.appendChild(createElement('div', {
         className: 'onboarding-content--text mdc-typography--headline6',
         textContent: "When was your company established ?"
     }));
-    officeContainer.appendChild(year);
-    officeContainer.appendChild(textFieldHelper())
-    officeContainer.appendChild(logoCont);
-    officeContainer.appendChild(createElement('div', {
+    detailsCont.appendChild(year);
+    detailsCont.appendChild(textFieldHelper())
+    detailsCont.appendChild(logoCont);
+    detailsCont.appendChild(createElement('div', {
         className: 'onboarding-content--text mdc-typography--headline6',
         textContent: "Company's address"
     }));
-    officeContainer.appendChild(address);
-    officeContainer.appendChild(textFieldHelper())
-    officeContainer.appendChild(createElement('div', {
-        className: 'onboarding-content--text mdc-typography--headline6',
-        textContent: "PIN code"
-    }));
-    officeContainer.appendChild(pincode);
-    officeContainer.appendChild(textFieldHelper())
-    officeContainer.appendChild(createElement('div', {
+
+
+    detailsCont.appendChild(createElement('div', {
         className: 'onboarding-content--text mdc-typography--headline6',
         textContent: "Description"
     }));
-    officeContainer.appendChild(description);
-    officeContainer.appendChild(textFieldHelper())
-    frag.appendChild(officeContainer)
+    detailsCont.appendChild(description);
+    detailsCont.appendChild(textFieldHelper())
+    frag.appendChild(detailsCont)
 
     const inputFields = {
-        name: new mdc.textField.MDCTextField(companyName),
-        address: new mdc.textField.MDCTextField(address),
         year: new mdc.textField.MDCTextField(year),
-        pincode: new mdc.textField.MDCTextField(pincode),
         description: new mdc.textField.MDCTextField(description),
     }
 
@@ -719,97 +772,80 @@ function officeFlow(category = onboarding_data_save.get().category) {
         })
     });
 
-    const nxtButton = nextButton();
+    
     nxtButton.element.addEventListener('click', () => {
-        if (!inputFields.name.value) {
-            setHelperInvalid(inputFields.name, 'Enter your company name');
-            return;
-        };
-        if (!inputFields.address.value) {
-            setHelperInvalid(inputFields.address, 'Enter your company address');
-            return
-        };
+        
         if (inputFields.year.value && !isValidYear(inputFields.year.value)) {
             setHelperInvalid(inputFields.year, 'Enter correct year');
             return
         }
 
-
-        isValidPincode(inputFields.pincode.value).then(isValid => {
-            if (!isValid) {
-                setHelperInvalid(inputFields.pincode, 'Enter correct PIN code');
-                return
+        const officeData = {
+            gst: officeMeta.gstNumber,
+            description: inputFields.description.value,
+            yearOfEstablishment: inputFields.year.value,
+            companyLogo: companyLogo || "",
+            category: officeMeta.category,
+            timezone: "Asia/Kolkata",
+            firstContact: {
+                phoneNumber: firebase.auth().currentUser.phoneNumber
             }
-            const officeData = {
-                name: inputFields.name.value,
-                registeredOfficeAddress: inputFields.address.value,
-                pincode: inputFields.pincode.value,
-                description: inputFields.description.value,
-                yearOfEstablishment: inputFields.year.value,
-                companyLogo: companyLogo || "",
-                category: category,
-                template: 'office',
-                timezone: "Asia/Kolkata"
+        };
+        if (!shouldProcessRequest(savedData, officeData)) {
+            handleOfficeRequestSuccess(officeData);
+            return;
+        }
+        const officeRequest = createRequestBodyForOffice(officeData)
+        nxtButton.setLoader();
+
+        sendOfficeRequest(officeRequest).then(res => {
+            if (res.officeId) {
+                officeData.officeId = res.officeId;
             };
-            if (!shouldProcessRequest(savedData, officeData)) {
-                handleOfficeRequestSuccess(officeData);
-                return;
+
+            officeData.pstart = Date.now();
+            if (res.office) {
+                officeData.name = res.office;
             }
-            const officeRequest = createRequestBodyForOffice(officeData)
-            nxtButton.setLoader();
 
-            sendOfficeRequest(officeRequest).then(res => {
-                if (res.officeId) {
-                    officeData.officeId = res.officeId;
-                };
+            handleOfficeRequestSuccess(officeData);
+            if (window.fbq) {
+                fbq('trackCustom', 'Office Created')
+            }
 
-                officeData.pstart = Date.now();
-                if(res.office) {
-                    officeData.name = res.office;
-                }
+            sendAcqusition();
+        }).catch(function (error) {
 
-                handleOfficeRequestSuccess(officeData);
-                if (window.fbq) {
-                    fbq('trackCustom', 'Office Created')
-                }
+            nxtButton.removeLoader();
+            let field;
+            let message
+            if (error.message === `Office with the name '${officeData.name}' already exists`) {
+                field = inputFields.name;
+                message = `${officeData.name} already exists. Choose a differnt company name`;
+            }
+            if (error.message === `Invalid registered address: '${officeData.registeredOfficeAddress}'`) {
+                field = inputFields.address;
+                message = `Enter a valid company address`;
+            }
+            if (error.message === 'Pincode is not valid') {
+                field = inputFields.pincode;
+                message = 'PIN code is not correct';
+            };
 
-                sendAcqusition();
-            }).catch(function (error) {
-
-                nxtButton.removeLoader();
-                let field;
-                let message
-                if (error.message === `Office with the name '${officeData.name}' already exists`) {
-                    field = inputFields.name;
-                    message = `${officeData.name} already exists. Choose a differnt company name`;
-                }
-                if (error.message === `Invalid registered address: '${officeData.registeredOfficeAddress}'`) {
-                    field = inputFields.address;
-                    message = `Enter a valid company address`;
-                }
-                if (error.message === 'Pincode is not valid') {
-                    field = inputFields.pincode;
-                    message = 'PIN code is not correct';
-                };
-
-                if (field) {
-                    setHelperInvalid(field, message);
-                    return;
-                };
-                sendErrorLog({
-                    message: error.message,
-                    stack: error.stack
-                });
-            })
-
+            if (field) {
+                setHelperInvalid(field, message);
+                return;
+            };
+            sendErrorLog({
+                message: error.message,
+                stack: error.stack
+            });
         })
-    })
 
-    journeyContainer.innerHTML = ''
+    })
     journeyContainer.appendChild(frag);
-    actionsContainer.appendChild(nxtButton.element);
-    document.body.scrollTop = 0;
-};
+
+}
 
 const removeSpecialCharsInside = str => {
     const reverseText = str.split('').reverse().join('');
@@ -871,7 +907,7 @@ const getPlans = (schedule = []) => {
 
 
 function choosePlan() {
-    
+
 
     const officeData = onboarding_data_save.get();
     document.body.scrollTop = 0
@@ -925,10 +961,10 @@ function choosePlan() {
     nextBtn.element.addEventListener('click', () => {
         nextBtn.setLoader();
         waitTillCustomClaimsUpdate(officeData.name, function () {
-            
+
             const planSelected = plans[ulInit.selectedIndex].amount
-            
-            officeData.pend = getDuration(planSelected,officeData.pstart)
+
+            officeData.pend = getDuration(planSelected, officeData.pstart)
             handlePayment(officeData, planSelected);
 
         })
@@ -2563,7 +2599,7 @@ const textFieldFilled = (attr) => {
  */
 const textFieldOutlined = (attrs) => {
     const label = createElement('label', {
-        className: 'mdc-text-field mdc-text-field--outlined',
+        className: `mdc-text-field mdc-text-field--outlined ${attrs.className ? attrs.className:''}`,
         id: attrs.id || ''
     })
     if (attrs.value) {
