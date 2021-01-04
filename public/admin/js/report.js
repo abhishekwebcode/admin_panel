@@ -30,10 +30,6 @@ const selectLi = (value, name) => {
 /** Initialize the select fields and date fields for report cards */
 (function () {
     const attendanceCard = document.getElementById('attendance-card');
-    // getRange(0, endMonth).forEach(month => {
-    //     console.log(month)
-    //     attendanceCard.querySelector('.month-list').appendChild(selectLi(month, months[month]))
-    // })
     months.forEach((month,index)=>{
         attendanceCard.querySelector('.month-list').appendChild(selectLi(index,month))
     })

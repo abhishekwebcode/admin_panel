@@ -30,8 +30,8 @@ var selectLi = function selectLi(value, name) {
 
 (function () {
   var attendanceCard = document.getElementById('attendance-card');
-  getRange(6, endMonth).forEach(function (month) {
-    attendanceCard.querySelector('.month-list').appendChild(selectLi(month, months[month]));
+  months.forEach(function (month, index) {
+    attendanceCard.querySelector('.month-list').appendChild(selectLi(index, month));
   });
   getRange(2020, endYear).forEach(function (year) {
     attendanceCard.querySelector('.year-list').appendChild(selectLi(year, year));
