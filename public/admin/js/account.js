@@ -7,6 +7,8 @@ const init = (office, officeId) => {
     const emailField = new mdc.textField.MDCTextField(document.getElementById('account-email'));
     const imageField = document.querySelector('.account-photo');
     const imageUpload = document.getElementById('image-upload');
+    const imageErrorEl = document.getElementById('image-upload-error')
+
     const submitBtn = form.querySelector('.form-submit[type="submit"]')
 
     let base64Image = auth.photoURL;
@@ -17,10 +19,21 @@ const init = (office, officeId) => {
         imageField.style.backgroundImage = `url("${auth.photoURL}")`
     };
     imageUpload.addEventListener('change', (ev) => {
-        getImageBase64(ev).then(base64 => {
+        getImageBase64(ev,0.8,parseInt(imageUpload.dataset.maxFileSize)).then(base64 => {
+            imageErrorEl.innerHTML = ''
             base64Image = base64;
             imageField.style.backgroundImage = `url("${base64}")`;
-
+        }).catch(imageError=>{
+            switch (imageError.message) {
+                case 'file-size-too-large':
+                    imageErrorEl.textContent = 'Image size should be less than 10MB'
+                    break
+                case 'file-not-exist':
+                    imageErrorEl.textContent = 'File does not exist'
+                    break
+                default:
+                    imageErrorEl.textContent = error.message
+            }
         })
     })
 

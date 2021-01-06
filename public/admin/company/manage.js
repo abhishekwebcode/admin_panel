@@ -7,6 +7,7 @@ const pincode = document.getElementById('pincode');
 const form = document.getElementById('manage-form');
 const logoCont = document.getElementById('company-logo');
 const uploadLogo = document.getElementById('upload-logo');
+const imageErrorEl = document.getElementById('image-upload-error')
 const removeLogo = document.getElementById('remove-logo');
 const submitBtn = form.querySelector('.form-actionable .mdc-fab--action[type="submit"]')
 
@@ -36,7 +37,8 @@ const updateForm = (record) => {
     }
     
     uploadLogo.addEventListener('change',(ev)=>{
-        getImageBase64(ev).then(base64 => {
+        getImageBase64(ev,0.5,).then(base64 => {
+            imageErrorEl.innerHTML = ''
             logoCont.classList.remove('hidden');
             logoCont.style.backgroundImage = `url("${base64}")`;
             removeLogo.addEventListener('click',()=>{
@@ -44,6 +46,17 @@ const updateForm = (record) => {
                 logoCont.style.backgroundImage = '';
                 logoCont.classList.add('hidden');
             })
+        }).catch(imageUploadErr=>{
+            switch (imageUploadErr.message) {
+                case 'file-size-too-large':
+                    imageErrorEl.textContent = 'Image size should be less than 10MB'
+                    break
+                case 'file-not-exist':
+                    imageErrorEl.textContent = 'File does not exist'
+                    break
+                default:
+                    imageErrorEl.textContent = error.message
+            }
         })
     })
 

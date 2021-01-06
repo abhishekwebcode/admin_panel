@@ -716,41 +716,42 @@ const showOfficeForm = (officeMeta, nxtButton, gstTextField) => {
 
     const logo = createElement('input', {
         type: 'file',
-        accept: 'image/*',
+        accept: 'image/jpeg,image/jpg',
         'data-max-file-size':'10485760'
     });
 
+    const logoError = createElement('div',{
+        className:'mdc-theme-error'
+    })
     let companyLogo;
 
 
     // open file explorer and get image
     logo.addEventListener('change', (ev) => {
         getImageBase64(ev,0.5,parseInt(logo.dataset.maxFileSize)).then(base64 => {
+            logoError.textContent = ''
             companyLogo = base64;
             if (document.querySelector('.image-cont')) {
                 document.querySelector('.image-cont').remove()
             }
             logoCont.appendChild(createImage(companyLogo, logo, companyLogo));
         }).catch(err=>{
-            const imageErrorEl = document.getElementById("image-upload-error")
             switch (err.message) {
                 case 'file-size-too-large':
-                    imageErrorEl.textContent = 'Compay logo image size  should be less than 10MB'
+                    logoError.textContent = 'Compay logo image size  should be less than 10MB'
                     break
                 case 'file-not-exist':
-                    imageErrorEl.textContent = 'File does not exist'
+                    logoError.textContent = 'File does not exist'
                     break
                 default:
-                    imageErrorEl.textContent = error.message
+                    logoError.textContent = error.message
             }
         });
     })
 
     actionCont.appendChild(logoText);
     actionCont.appendChild(logo);
-    actionCont.appendChild(createElement('div',{
-        id:'image-upload-error'
-    }))
+    actionCont.appendChild(logoError)
     logoCont.appendChild(actionCont);
     if (savedData.companyLogo) {
         companyLogo = savedData.companyLogo;
