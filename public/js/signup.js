@@ -126,10 +126,7 @@ window.addEventListener('popstate', ev => {
             fnName = choosePlan;
             break;
         case 'payment':
-            history.pushState(null, null, basePathName + `${window.location.search}#employees`)
-            fnName = onboardingSucccess;
-            break;
-        case 'employees':
+            history.pushState(null, null, basePathName + `${window.location.search}#success`)
             fnName = onboardingSucccess;
             break;
         default:
@@ -609,8 +606,7 @@ function officeFlow(category = onboarding_data_save.get().category) {
         style: 'width:100%'
     })
 
-    const nxtButton = nextButton();
-    nxtButton.element.setAttribute('disabled', 'true')
+
 
     const gridText = createElement('div', {
         className: 'mdc-layout-grid__cell--span-3-phone mdc-layout-grid__cell--span-6-tablet mdc-layout-grid__cell--span-10-desktop'
@@ -639,15 +635,25 @@ function officeFlow(category = onboarding_data_save.get().category) {
             setHelperInvalid(gstNumber, 'GST Number is incorrect')
             return
         }
-        searchGstBtn.setLoader()
+        searchGstBtn.setLoader();
+
+
+        // clear the gst details container and next button
+        if (document.getElementById('details-cont')) {
+            document.getElementById('details-cont').remove()
+        }
+        if (document.getElementById('journey-next')) {
+            document.getElementById('journey-next').remove();
+        }
+
         http('GET', `${appKeys.getBaseUrl()}/api/services/officeGSTLookup?gst=${gstNumber.value}`)
             .then(gstResult => {
+
                 searchGstBtn.removeLoader()
-                nxtButton.removeLoader()
                 setHelperValid(gstNumber);
                 gstResult.gstNumber = gstNumber.value;
                 gstResult.category = category;
-                showOfficeForm(gstResult, nxtButton, gstNumber)
+                showOfficeForm(gstResult, gstNumber)
             }).catch(error => {
                 console.log(error)
                 searchGstBtn.removeLoader()
@@ -666,20 +672,15 @@ function officeFlow(category = onboarding_data_save.get().category) {
     officeContainer.appendChild(gstCont)
     journeyContainer.appendChild(officeContainer)
 
-
-    actionsContainer.appendChild(nxtButton.element);
     document.body.scrollTop = 0;
 };
 
-const showOfficeForm = (officeMeta, nxtButton, gstTextField) => {
-    if(document.getElementById('details-cont')) {
-        document.getElementById('details-cont').remove()
-    }
+const showOfficeForm = (officeMeta, gstTextField) => {
+
     const detailsCont = createElement('div', {
         id: 'details-cont',
         className: 'mt-20'
     })
-    detailsCont.innerHTML = ''
 
     const frag = document.createDocumentFragment();
     const savedData = onboarding_data_save.get();
@@ -717,25 +718,25 @@ const showOfficeForm = (officeMeta, nxtButton, gstTextField) => {
     const logo = createElement('input', {
         type: 'file',
         accept: 'image/jpeg,image/jpg',
-        'data-max-file-size':'10485760'
+        'data-max-file-size': '10485760'
     });
 
-    const logoError = createElement('div',{
-        className:'mdc-theme-error'
+    const logoError = createElement('div', {
+        className: 'mdc-theme-error'
     })
     let companyLogo;
 
 
     // open file explorer and get image
     logo.addEventListener('change', (ev) => {
-        getImageBase64(ev,0.5,parseInt(logo.dataset.maxFileSize)).then(base64 => {
+        getImageBase64(ev, 0.5, parseInt(logo.dataset.maxFileSize)).then(base64 => {
             logoError.textContent = ''
             companyLogo = base64;
             if (document.querySelector('.image-cont')) {
                 document.querySelector('.image-cont').remove()
             }
             logoCont.appendChild(createImage(companyLogo, logo, companyLogo));
-        }).catch(err=>{
+        }).catch(err => {
             switch (err.message) {
                 case 'file-size-too-large':
                     logoError.textContent = 'Compay logo image size  should be less than 10MB'
@@ -810,13 +811,13 @@ const showOfficeForm = (officeMeta, nxtButton, gstTextField) => {
     });
 
 
-    
+
     inputFields.year.input_.addEventListener('input', (ev) => {
         if (inputFields.description.input_.dataset.typed === "yes") return;
-         inputFields.description.value = getOfficeDescription(officeMeta,inputFields.year.value)
+        inputFields.description.value = getOfficeDescription(officeMeta, inputFields.year.value)
     })
 
-    nxtButton.element.removeAttribute('disabled')
+    const nxtButton = nextButton();
     nxtButton.element.addEventListener('click', () => {
 
         if (inputFields.year.value && !isValidYear(inputFields.year.value)) {
@@ -836,7 +837,7 @@ const showOfficeForm = (officeMeta, nxtButton, gstTextField) => {
             handleOfficeRequestSuccess(officeData);
             return;
         }
-        const officeRequest = createRequestBodyForOffice(officeData,officeMeta.companyName)
+        const officeRequest = createRequestBodyForOffice(officeData, officeMeta.companyName)
         nxtButton.setLoader();
 
         sendOfficeRequest(officeRequest).then(res => {
@@ -859,6 +860,8 @@ const showOfficeForm = (officeMeta, nxtButton, gstTextField) => {
             handleOfficeRejection(error, gstTextField)
         })
     })
+
+    actionsContainer.appendChild(nxtButton.element);
 }
 
 
@@ -1007,7 +1010,7 @@ const handlePayment = (officeData, plan, gstNumber) => {
             paymentToken: res.paymentToken || '',
         });
         if (plan == 0) {
-            history.pushState(history.state, null, basePathName + `${window.location.search}#employees`);
+            history.pushState(history.state, null, basePathName + `${window.location.search}#success`);
             incrementProgress();
             onboardingSucccess()
             return
@@ -1018,13 +1021,15 @@ const handlePayment = (officeData, plan, gstNumber) => {
     }).catch(err => {
         switch (err.message) {
             case 'gst-not-present':
-                handleGSTForPayment(err, (gstNumber) => {
+            case 'invalid-gst':
+            case 'gst-already-present':
+                handleGSTForPayment((gstNumber) => {
                     handlePayment(officeData, plan, gstNumber)
                 })
                 break;
             default:
-                handleGSTForPayment(err)
                 showSnacksApiResponse('An error occured. Try again later');
+                sendErrorLog({message:err.message,body:''})
                 break;
         }
         try {
@@ -1035,16 +1040,14 @@ const handlePayment = (officeData, plan, gstNumber) => {
     })
 }
 
-const handleGSTForPayment = (error, callback) => {
+const handleGSTForPayment = (callback) => {
     const dialogEl = document.getElementById('ask-gst-dialog')
     const dialog = new mdc.dialog.MDCDialog(dialogEl)
     dialog.open()
     const input = new mdc.textField.MDCTextField(document.getElementById('ask-gst-input'))
     const submit = document.getElementById('ask-gst-btn')
 
-    handleOfficeRejection(error, input)
-
-    if(submit.dataset.clicked) return
+    if (submit.dataset.clicked) return
     submit.addEventListener('click', () => {
         submit.dataset.clicked = true
         if (!input.value) {
@@ -1388,8 +1391,9 @@ const showTransactionDialog = (paymentResponse, officeId) => {
         if (paymentResponse.txStatus === 'SUCCESS') {
             if (new URLSearchParams(window.location.search).get('renew')) {
                 redirect('/admin/index.html?renewd=1')
+                return
             }
-            history.pushState(history.state, null, basePathName + `${window.location.search}#employees`);
+            history.pushState(history.state, null, basePathName + `${window.location.search}#success`);
             incrementProgress();
             onboardingSucccess()
             return
@@ -2028,7 +2032,7 @@ const createImage = (base64, inputFile, companyLogo) => {
  * @param {object} officeData 
  * @returns {object} req
  */
-const createRequestBodyForOffice = (officeData,officeName) => {
+const createRequestBodyForOffice = (officeData, officeName) => {
     let url = `${appKeys.getBaseUrl()}/api/services/office`;
     const savedData = onboarding_data_save.get()
     const req = {
@@ -2119,7 +2123,7 @@ const isValidYear = (year) => {
     return true
 }
 
-const getOfficeDescription = (officeMeta,year) => {
+const getOfficeDescription = (officeMeta, year) => {
     return `${officeMeta.companyName} is ${prefixForVowel(officeMeta.category)} ${officeMeta.category} company${officeMeta.address ?`, based out of ${officeMeta.address}.`:''} ${year && year > 0?` They have been in business since ${year}`:''}`
 }
 
@@ -2128,7 +2132,7 @@ const getOfficeDescription = (officeMeta,year) => {
  * returns a/an if a string first character is a vowel
  * @param {string} string
  * @returns {string} a/an
-*/
+ */
 
 const prefixForVowel = (string) => {
     const firstChar = string.charAt(0);
@@ -2455,12 +2459,16 @@ const onboardingSucccess = () => {
       </div>
     </div>`;
     actionsContainer.innerHTML = '';
-    fbq('trackCustom', 'Onboarding Completed');
+    
+    if(window.fbq) {
+        fbq('trackCustom', 'Onboarding Completed');
+    }
+
     getShareLink(onboarding_data_save.get().name).then(response => {
         document.getElementById('success-share-link').innerHTML = ` <div class='share-container'>
         <h2><span class="line-center">Or</span></h2>
         <p class='mt-10 mb-0 mdc-typography--headline6 text-center'>Invite employees by sharing this download link with them.</p>
-            ${shareWidget(shareLink).outerHTML}
+            ${shareWidget(response.shortLink).outerHTML}
     </div>`
     }).catch(console.error)
 }

@@ -144,11 +144,7 @@ window.addEventListener('popstate', function (ev) {
       break;
 
     case 'payment':
-      history.pushState(null, null, basePathName + "".concat(window.location.search, "#employees"));
-      fnName = onboardingSucccess;
-      break;
-
-    case 'employees':
+      history.pushState(null, null, basePathName + "".concat(window.location.search, "#success"));
       fnName = onboardingSucccess;
       break;
 
@@ -613,8 +609,6 @@ function officeFlow() {
     className: 'mdc-layout-grid__inner mt-20',
     style: 'width:100%'
   });
-  var nxtButton = nextButton();
-  nxtButton.element.setAttribute('disabled', 'true');
   var gridText = createElement('div', {
     className: 'mdc-layout-grid__cell--span-3-phone mdc-layout-grid__cell--span-6-tablet mdc-layout-grid__cell--span-10-desktop'
   });
@@ -641,14 +635,22 @@ function officeFlow() {
       return;
     }
 
-    searchGstBtn.setLoader();
+    searchGstBtn.setLoader(); // clear the gst details container and next button
+
+    if (document.getElementById('details-cont')) {
+      document.getElementById('details-cont').remove();
+    }
+
+    if (document.getElementById('journey-next')) {
+      document.getElementById('journey-next').remove();
+    }
+
     http('GET', "".concat(appKeys.getBaseUrl(), "/api/services/officeGSTLookup?gst=").concat(gstNumber.value)).then(function (gstResult) {
       searchGstBtn.removeLoader();
-      nxtButton.removeLoader();
       setHelperValid(gstNumber);
       gstResult.gstNumber = gstNumber.value;
       gstResult.category = category;
-      showOfficeForm(gstResult, nxtButton, gstNumber);
+      showOfficeForm(gstResult, gstNumber);
     }).catch(function (error) {
       console.log(error);
       searchGstBtn.removeLoader();
@@ -664,22 +666,16 @@ function officeFlow() {
   }));
   officeContainer.appendChild(gstCont);
   journeyContainer.appendChild(officeContainer);
-  actionsContainer.appendChild(nxtButton.element);
   document.body.scrollTop = 0;
 }
 
 ;
 
-var showOfficeForm = function showOfficeForm(officeMeta, nxtButton, gstTextField) {
-  if (document.getElementById('details-cont')) {
-    document.getElementById('details-cont').remove();
-  }
-
+var showOfficeForm = function showOfficeForm(officeMeta, gstTextField) {
   var detailsCont = createElement('div', {
     id: 'details-cont',
     className: 'mt-20'
   });
-  detailsCont.innerHTML = '';
   var frag = document.createDocumentFragment();
   var savedData = onboarding_data_save.get();
   detailsCont.appendChild(createElement('div', {
@@ -801,7 +797,7 @@ var showOfficeForm = function showOfficeForm(officeMeta, nxtButton, gstTextField
     if (inputFields.description.input_.dataset.typed === "yes") return;
     inputFields.description.value = getOfficeDescription(officeMeta, inputFields.year.value);
   });
-  nxtButton.element.removeAttribute('disabled');
+  var nxtButton = nextButton();
   nxtButton.element.addEventListener('click', function () {
     if (inputFields.year.value && !isValidYear(inputFields.year.value)) {
       setHelperInvalid(inputFields.year, 'Enter correct year');
@@ -849,6 +845,7 @@ var showOfficeForm = function showOfficeForm(officeMeta, nxtButton, gstTextField
       handleOfficeRejection(error, gstTextField);
     });
   });
+  actionsContainer.appendChild(nxtButton.element);
 };
 
 var removeSpecialCharsInside = function removeSpecialCharsInside(str) {
@@ -975,7 +972,7 @@ var handlePayment = function handlePayment(officeData, plan, gstNumber) {
     });
 
     if (plan == 0) {
-      history.pushState(history.state, null, basePathName + "".concat(window.location.search, "#employees"));
+      history.pushState(history.state, null, basePathName + "".concat(window.location.search, "#success"));
       incrementProgress();
       onboardingSucccess();
       return;
@@ -987,14 +984,19 @@ var handlePayment = function handlePayment(officeData, plan, gstNumber) {
   }).catch(function (err) {
     switch (err.message) {
       case 'gst-not-present':
-        handleGSTForPayment(err, function (gstNumber) {
+      case 'invalid-gst':
+      case 'gst-already-present':
+        handleGSTForPayment(function (gstNumber) {
           handlePayment(officeData, plan, gstNumber);
         });
         break;
 
       default:
-        handleGSTForPayment(err);
         showSnacksApiResponse('An error occured. Try again later');
+        sendErrorLog({
+          message: err.message,
+          body: ''
+        });
         break;
     }
 
@@ -1006,13 +1008,12 @@ var handlePayment = function handlePayment(officeData, plan, gstNumber) {
   });
 };
 
-var handleGSTForPayment = function handleGSTForPayment(error, callback) {
+var handleGSTForPayment = function handleGSTForPayment(callback) {
   var dialogEl = document.getElementById('ask-gst-dialog');
   var dialog = new mdc.dialog.MDCDialog(dialogEl);
   dialog.open();
   var input = new mdc.textField.MDCTextField(document.getElementById('ask-gst-input'));
   var submit = document.getElementById('ask-gst-btn');
-  handleOfficeRejection(error, input);
   if (submit.dataset.clicked) return;
   submit.addEventListener('click', function () {
     submit.dataset.clicked = true;
@@ -1367,9 +1368,10 @@ var showTransactionDialog = function showTransactionDialog(paymentResponse, offi
     if (paymentResponse.txStatus === 'SUCCESS') {
       if (new URLSearchParams(window.location.search).get('renew')) {
         redirect('/admin/index.html?renewd=1');
+        return;
       }
 
-      history.pushState(history.state, null, basePathName + "".concat(window.location.search, "#employees"));
+      history.pushState(history.state, null, basePathName + "".concat(window.location.search, "#success"));
       incrementProgress();
       onboardingSucccess();
       return;
@@ -2003,7 +2005,7 @@ var getOfficeDescription = function getOfficeDescription(officeMeta, year) {
  * returns a/an if a string first character is a vowel
  * @param {string} string
  * @returns {string} a/an
-*/
+ */
 
 
 var prefixForVowel = function prefixForVowel(string) {
@@ -2263,9 +2265,13 @@ var onboardingSucccess = function onboardingSucccess() {
   localStorage.setItem("completed", "true");
   journeyContainer.innerHTML = "\n    <div class='completion-container'>\n    <h1 class='onboarding-headline--secondary mt-0 mb-0'>Congratulations you can now start tracking your employees</h1>\n\n    <svg class=\"checkmark\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 52 52\"><circle class=\"checkmark__circle\" cx=\"26\" cy=\"26\" r=\"25\" fill=\"none\"/><path class=\"checkmark__check\" fill=\"none\" d=\"M14.1 27.2l7.1 7.2 16.7-16.8\"/></svg>\n    <a type=\"button\" class=\"mdc-button mdc-dialog__button mdc-button--raised\" data-mdc-dialog-action=\"close\" href=\"/admin/?new_user=1\" style=\"    width: 200px;\n    margin: 0 auto;\n    display: flex;\n    text-align: center;\n    margin-top: 20px;\n    margin-bottom: 20px;\n    height: 48px;\n    font-size: 21px;\">\n        <div class=\"mdc-button__ripple\"></div>\n        <span class=\"mdc-button__label\">Continue</span>\n    </a>\n        <p class='mdc-typography--headline5 text-center mb-0 mt-0' style='padding-top:10px;border-top:1px solid #ccc'>Download the app and try it</p>\n        <div class=\"full-width\">\n          <div style=\"width: 300px;display: block;margin: 0 auto;\">\n            <div style=\"width: 100%;display: inline-flex;align-items: center;\">\n              <div class=\"play-store\">\n                <a\n                  href=\"https://play.google.com/store/apps/details?id=com.growthfile.growthfileNew&amp;pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1\"><img\n                    alt=\"Get it on Google Play\"\n                    src=\"https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png\"></a>\n              </div>\n              <div class=\"app-store full-width\">\n                <a href=\"https://apps.apple.com/in/app/growthfile-gps-attendance-app/id1441388774?mt=8\"\n                  style=\"display:inline-block;overflow:hidden;background:url(https://linkmaker.itunes.apple.com/en-gb/badge-lrg.svg?releaseDate=2018-12-06&amp;kind=iossoftware&amp;bubble=ios_apps) no-repeat;width:135px;height:40px;\"></a>\n              </div>\n            </div>\n          </div>\n      </div>\n      <div id='success-share-link'>\n      </div>\n    </div>";
   actionsContainer.innerHTML = '';
-  fbq('trackCustom', 'Onboarding Completed');
+
+  if (window.fbq) {
+    fbq('trackCustom', 'Onboarding Completed');
+  }
+
   getShareLink(onboarding_data_save.get().name).then(function (response) {
-    document.getElementById('success-share-link').innerHTML = " <div class='share-container'>\n        <h2><span class=\"line-center\">Or</span></h2>\n        <p class='mt-10 mb-0 mdc-typography--headline6 text-center'>Invite employees by sharing this download link with them.</p>\n            ".concat(shareWidget(shareLink).outerHTML, "\n    </div>");
+    document.getElementById('success-share-link').innerHTML = " <div class='share-container'>\n        <h2><span class=\"line-center\">Or</span></h2>\n        <p class='mt-10 mb-0 mdc-typography--headline6 text-center'>Invite employees by sharing this download link with them.</p>\n            ".concat(shareWidget(response.shortLink).outerHTML, "\n    </div>");
   }).catch(console.error);
 };
 
