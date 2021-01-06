@@ -265,7 +265,8 @@
                         <div class="logo-container">
                             <div>
                                 <div class="logo-text">Company logo</div>
-                                <input type="file" accept="image/*" id="upload-logo">
+                                <input type="file" accept="image/jpeg,image/jpg" id="upload-logo" data-max-file-size="10485760">
+                                <span class="pt-5 mdc-theme--error" id="image-upload-error"></span>
                             </div>
                             <div class="image-cont hidden" id="company-logo">
                                 <i class="material-icons" id="remove-logo">delete</i>

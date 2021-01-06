@@ -2734,13 +2734,5 @@ input:-webkit-autofill:focus {
 
 .gst-dialog-cont {
   width: 100%;
-}
-.gst-dialog-cont .gst-image {
-  width: 40%;
-  float: right
-}
-.gst-dialog-cont .ask-gst {
-  width: 60%;
-  float: left;
-  padding-left: 20px;
+  display: inline-flex;
 }

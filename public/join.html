@@ -225,13 +225,11 @@
       <div class="mdc-dialog__container">
         <div class="mdc-dialog__surface" role="alertdialog" aria-modal="true" aria-labelledby="my-dialog-title"
           aria-describedby="my-dialog-content">
-          <div class="mdc-dialog__title mdc-typography--headline5 bold">
-
-          </div>
+       
           <div class="mdc-dialog__content">
             <div class="gst-dialog-cont">
               <div class="gst-image">
-                <svg width="295" height="218" viewBox="0 0 295 218" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg width="180" height="218" fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="40 10 230 200">
                   <path d="M133.373 190.092C88.3067 190.092 51.7734 153.559 51.7734 108.493C51.7734 63.4265 88.3067 26.8936 133.373 26.8936C178.439 26.8936 214.972 63.4265 214.972 108.493C214.972 153.559 178.439 190.092 133.373 190.092Z" fill="#FFDBDC"/>
                   <path d="M89.6654 64.0853L212.038 64.1157C217.158 64.1168 221.308 68.2666 221.309 73.3859L221.336 143.825C221.337 148.946 217.187 153.099 212.066 153.1H212.061L89.6881 153.065C84.5687 153.064 80.4189 148.914 80.4175 143.795L80.3906 73.3559C80.3892 68.2348 84.5397 64.0825 89.6608 64.0811H89.6654V64.0853Z" fill="white"/>
                   <path d="M189.809 130.846H147.154C145.106 130.846 143.445 132.506 143.445 134.555C143.445 136.603 145.106 138.264 147.154 138.264H189.809C191.857 138.264 193.517 136.603 193.517 134.555C193.517 132.506 191.857 130.846 189.809 130.846Z" fill="#ECECEC"/>
@@ -248,22 +246,26 @@
               </div>
               <div class="ask-gst">
                 <p>In order to proceed, please enter your company's GSTIN.</p>
-                <div>GSTIN helps us to generate accurate E-invoices for you</div>
-                <label class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
+                <p>GSTIN helps us to generate accurate E-invoices for you</p>
+                <label class="mdc-text-field mdc-text-field--outlined full-width" id="ask-gst-input">
                   <span class="mdc-notched-outline">
                     <span class="mdc-notched-outline__leading"></span>
                     <span class="mdc-notched-outline__notch">
-                      <span class="mdc-floating-label" id="my-label-id">GSTIN Number</span>
+                      <span class="mdc-floating-label">GSTIN Number</span>
                     </span>
                     <span class="mdc-notched-outline__trailing"></span>
                   </span>
                   <input type="text" class="mdc-text-field__input" aria-labelledby="my-label-id">
                 </label>
+                <div class="mdc-text-field-helper-line">
+                  <div class="mdc-text-field-helper-text mdc-text-field-helper-text--validation-msg"
+                      aria-hidden="true"></div>
+              </div>
               </div>
             </div>
             <div class="gst-next mt-20">
-              <button type="button" class="mdc-button mdc-dialog__button mdc-button--large"
-                data-mdc-auto-init="MDCRipple" id="ask-gst-btn">
+              <button type="button" class="mdc-button mdc-dialog__button mdc-button--large mdc-button--raised"
+                data-mdc-auto-init="MDCRipple" id="ask-gst-btn" style="float: right;">
                 <div class="mdc-button__ripple"></div>
                 <span class="mdc-button__label">Next</span>
               </button>

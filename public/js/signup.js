@@ -998,7 +998,7 @@ const handlePayment = (officeData, plan, gstNumber) => {
         pstart: officeData.pstart,
         pend: officeData.pend,
     }
-    gstNumber ? body.gstNumber = gstNumber : ''
+    gstNumber ? body.gst = gstNumber : ''
 
     http('POST', `${appKeys.getBaseUrl()}/api/services/payment`, body).then(res => {
         onboarding_data_save.set({
@@ -1038,13 +1038,15 @@ const handlePayment = (officeData, plan, gstNumber) => {
 const handleGSTForPayment = (error, callback) => {
     const dialogEl = document.getElementById('ask-gst-dialog')
     const dialog = new mdc.dialog.MDCDialog(dialogEl)
-    dialog.open = true
-    const input = dialogEl.querySelector('.mdc-text-field').MDCTextField;
+    dialog.open()
+    const input = new mdc.textField.MDCTextField(document.getElementById('ask-gst-input'))
     const submit = document.getElementById('ask-gst-btn')
 
     handleOfficeRejection(error, input)
 
+    if(submit.dataset.clicked) return
     submit.addEventListener('click', () => {
+        submit.dataset.clicked = true
         if (!input.value) {
             setHelperInvalid(input, 'GST Number cannot be empty')
             return

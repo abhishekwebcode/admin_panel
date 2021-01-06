@@ -66,7 +66,7 @@ var updateCompanyProfile = function updateCompanyProfile(activity) {
   }
 
   companyName.textContent = activity.attachment['Name'].value;
-  companyAddress.textContent = activity.attachment['Registered Office Address'].value;
+  companyAddress.textContent = activity.attachment['Registered Office Address'] ? activity.attachment['Registered Office Address'].value : '';
   companyDescription.textContent = activity.attachment['Description'].value;
   companyCategory.textContent = activity.attachment['Category'] ? activity.attachment['Category'].value : '';
 };

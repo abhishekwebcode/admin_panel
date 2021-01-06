@@ -12,6 +12,8 @@ function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) return _arrayLikeToAr
 
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 /*
 Custom event polyfill for IE
 */
@@ -143,11 +145,11 @@ window.addEventListener('popstate', function (ev) {
 
     case 'payment':
       history.pushState(null, null, basePathName + "".concat(window.location.search, "#employees"));
-      fnName = addEmployeesFlow;
+      fnName = onboardingSucccess;
       break;
 
     case 'employees':
-      fnName = addEmployeesFlow;
+      fnName = onboardingSucccess;
       break;
 
     default:
@@ -229,7 +231,7 @@ var initJourney = function initJourney() {
         officeId: officeActivity.activityId,
         firstContact: officeActivity.creator,
         category: officeActivity.attachment.Category ? officeActivity.attachment.Category.value : '',
-        registeredOfficeAddress: officeActivity.attachment['Registered Office Address'].value,
+        registeredOfficeAddress: officeActivity.attachment['Registered Office Address'] ? officeActivity.attachment['Registered Office Address'].value : '',
         pincode: officeActivity.attachment.Pincode ? officeActivity.attachment.Pincode.value : '',
         description: officeActivity.attachment.Description.value,
         yearOfEstablishment: officeActivity.attachment['Year Of Establishment'] ? officeActivity.attachment['Year Of Establishment'].value : '',
@@ -272,6 +274,7 @@ var getPaymentEnd = function getPaymentEnd(endTime) {
 
 var nextButton = function nextButton() {
   var text = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 'Next';
+  var id = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'journey-next';
 
   if (document.getElementById('journey-next')) {
     document.getElementById('journey-next').remove();
@@ -279,7 +282,7 @@ var nextButton = function nextButton() {
 
   var button = createElement('button', {
     className: 'mdc-button mdc-button--raised',
-    id: 'journey-next'
+    id: id
   });
   button.innerHTML = " <div class=\"mdc-button__ripple\"></div>\n        <span class=\"mdc-button__label\">".concat(text, "</span>\n        <div class='straight-loader button hidden'></div>\n        ");
   new mdc.ripple.MDCRipple(button);
@@ -569,6 +572,35 @@ var svgLoader = function svgLoader(source) {
     }).then(resolve);
   });
 };
+/**
+ * 
+ * @param {string} number 
+ */
+
+
+var isGstNumberValid = function isGstNumberValid(number) {
+  return /\d{2}[A-Z]{5}\d{4}[A-Z]{1}[A-Z\d]{1}[Z]{1}[A-Z\d]{1}/.test(number);
+};
+
+var handleOfficeRejection = function handleOfficeRejection(error, tf) {
+  switch (error.message) {
+    case 'invalid-gst':
+      setHelperInvalid(tf, 'GST Number is incorrect');
+      break;
+
+    case 'gst-already-present':
+      setHelperInvalid(tf, 'This GST Number is already associated with another office');
+      break;
+
+    default:
+      showSnacksApiResponse(error.message);
+      sendErrorLog({
+        message: error.message,
+        stack: error.stack
+      });
+      break;
+  }
+};
 
 function officeFlow() {
   var category = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : onboarding_data_save.get().category;
@@ -577,13 +609,87 @@ function officeFlow() {
   var officeContainer = createElement('div', {
     className: 'office-container'
   });
-  var savedData = onboarding_data_save.get();
-  var companyName = textFieldOutlinedWithoutLabel({
-    required: true,
-    id: 'company-name',
-    autocomplete: 'organization',
-    value: savedData.name || ''
+  var gstCont = createElement('div', {
+    className: 'mdc-layout-grid__inner mt-20',
+    style: 'width:100%'
   });
+  var nxtButton = nextButton();
+  nxtButton.element.setAttribute('disabled', 'true');
+  var gridText = createElement('div', {
+    className: 'mdc-layout-grid__cell--span-3-phone mdc-layout-grid__cell--span-6-tablet mdc-layout-grid__cell--span-10-desktop'
+  });
+  var gstNumberField = textFieldOutlined({
+    required: true,
+    id: 'gst-number',
+    value: '',
+    label: 'GSTIN Number'
+  });
+  gstNumberField.style.marginTop = '0px';
+  gridText.appendChild(gstNumberField);
+  gridText.appendChild(textFieldHelper());
+  var gstNumber = new mdc.textField.MDCTextField(gstNumberField);
+  var searchGstBtn = nextButton('Search', 'seach-gst');
+  searchGstBtn.element.classList.add('mdc-layout-grid__cell--span-1-phone', 'mdc-layout-grid__cell--span-2-tablet', 'mdc-layout-grid__cell--span-2-desktop', 'search-button-gst');
+  searchGstBtn.element.addEventListener('click', function () {
+    if (!gstNumber.value) {
+      setHelperInvalid(gstNumber, 'GST Number cannot be empty');
+      return;
+    }
+
+    if (!isGstNumberValid(gstNumber.value)) {
+      setHelperInvalid(gstNumber, 'GST Number is incorrect');
+      return;
+    }
+
+    searchGstBtn.setLoader();
+    http('GET', "".concat(appKeys.getBaseUrl(), "/api/services/officeGSTLookup?gst=").concat(gstNumber.value)).then(function (gstResult) {
+      searchGstBtn.removeLoader();
+      nxtButton.removeLoader();
+      setHelperValid(gstNumber);
+      gstResult.gstNumber = gstNumber.value;
+      gstResult.category = category;
+      showOfficeForm(gstResult, nxtButton, gstNumber);
+    }).catch(function (error) {
+      console.log(error);
+      searchGstBtn.removeLoader();
+      handleOfficeRejection(error, gstNumber);
+    });
+  });
+  journeyContainer.innerHTML = '';
+  gstCont.appendChild(gridText);
+  gstCont.appendChild(searchGstBtn.element);
+  officeContainer.appendChild(createElement('p', {
+    className: '',
+    textContent: 'GSTIN helps us generate accurate E-invoices for you'
+  }));
+  officeContainer.appendChild(gstCont);
+  journeyContainer.appendChild(officeContainer);
+  actionsContainer.appendChild(nxtButton.element);
+  document.body.scrollTop = 0;
+}
+
+;
+
+var showOfficeForm = function showOfficeForm(officeMeta, nxtButton, gstTextField) {
+  if (document.getElementById('details-cont')) {
+    document.getElementById('details-cont').remove();
+  }
+
+  var detailsCont = createElement('div', {
+    id: 'details-cont',
+    className: 'mt-20'
+  });
+  detailsCont.innerHTML = '';
+  var frag = document.createDocumentFragment();
+  var savedData = onboarding_data_save.get();
+  detailsCont.appendChild(createElement('div', {
+    className: 'mt-20',
+    innerHTML: "Company Name: <b>".concat(officeMeta.companyName, "</b>")
+  }));
+  detailsCont.appendChild(createElement('div', {
+    className: 'mt-10',
+    innerHTML: "Address: <b>".concat(officeMeta.address, "</b>")
+  }));
   var year = textFieldOutlined({
     type: 'number',
     label: 'Year',
@@ -605,12 +711,17 @@ function officeFlow() {
   });
   var logo = createElement('input', {
     type: 'file',
-    accept: 'image/*'
+    accept: 'image/jpeg,image/jpg',
+    'data-max-file-size': '10485760'
+  });
+  var logoError = createElement('div', {
+    className: 'mdc-theme-error'
   });
   var companyLogo; // open file explorer and get image
 
   logo.addEventListener('change', function (ev) {
-    getImageBase64(ev).then(function (base64) {
+    getImageBase64(ev, 0.5, parseInt(logo.dataset.maxFileSize)).then(function (base64) {
+      logoError.textContent = '';
       companyLogo = base64;
 
       if (document.querySelector('.image-cont')) {
@@ -618,10 +729,24 @@ function officeFlow() {
       }
 
       logoCont.appendChild(createImage(companyLogo, logo, companyLogo));
-    }).catch(console.error);
+    }).catch(function (err) {
+      switch (err.message) {
+        case 'file-size-too-large':
+          logoError.textContent = 'Compay logo image size  should be less than 10MB';
+          break;
+
+        case 'file-not-exist':
+          logoError.textContent = 'File does not exist';
+          break;
+
+        default:
+          logoError.textContent = error.message;
+      }
+    });
   });
   actionCont.appendChild(logoText);
   actionCont.appendChild(logo);
+  actionCont.appendChild(logoError);
   logoCont.appendChild(actionCont);
 
   if (savedData.companyLogo) {
@@ -630,69 +755,36 @@ function officeFlow() {
   }
 
   ;
-  var address = textAreaOutlined({
-    required: true,
-    label: 'Address',
-    autocomplete: 'address-line1',
-    id: 'address',
-    rows: 2,
-    value: savedData.registeredOfficeAddress || '',
-    cols: 8
-  });
-  var pincode = textFieldOutlinedWithoutLabel({
-    required: true,
-    type: 'number',
-    label: 'PIN code',
-    autocomplete: 'postal-code',
-    value: savedData.pincode || ''
-  });
-  var description = textAreaOutlined({
+  var description = textAreaOutlined(_defineProperty({
     label: 'Description',
     rows: 4,
     cols: 8,
     id: 'description',
     value: savedData.description || ''
-  });
-  var frag = document.createDocumentFragment();
-  officeContainer.appendChild(createElement('div', {
-    className: 'onboarding-content--text mdc-typography--headline6',
-    textContent: "Company name"
-  }));
-  officeContainer.appendChild(companyName);
-  officeContainer.appendChild(textFieldHelper());
-  officeContainer.appendChild(createElement('div', {
+  }, "value", getOfficeDescription(officeMeta)));
+  detailsCont.appendChild(createElement('div', {
     className: 'onboarding-content--text mdc-typography--headline6',
     textContent: "When was your company established ?"
   }));
-  officeContainer.appendChild(year);
-  officeContainer.appendChild(textFieldHelper());
-  officeContainer.appendChild(logoCont);
-  officeContainer.appendChild(createElement('div', {
+  detailsCont.appendChild(year);
+  detailsCont.appendChild(textFieldHelper());
+  detailsCont.appendChild(logoCont);
+  detailsCont.appendChild(createElement('div', {
     className: 'onboarding-content--text mdc-typography--headline6',
     textContent: "Company's address"
   }));
-  officeContainer.appendChild(address);
-  officeContainer.appendChild(textFieldHelper());
-  officeContainer.appendChild(createElement('div', {
-    className: 'onboarding-content--text mdc-typography--headline6',
-    textContent: "PIN code"
-  }));
-  officeContainer.appendChild(pincode);
-  officeContainer.appendChild(textFieldHelper());
-  officeContainer.appendChild(createElement('div', {
+  detailsCont.appendChild(createElement('div', {
     className: 'onboarding-content--text mdc-typography--headline6',
     textContent: "Description"
   }));
-  officeContainer.appendChild(description);
-  officeContainer.appendChild(textFieldHelper());
-  frag.appendChild(officeContainer);
+  detailsCont.appendChild(description);
+  detailsCont.appendChild(textFieldHelper());
+  frag.appendChild(detailsCont);
   var inputFields = {
-    name: new mdc.textField.MDCTextField(companyName),
-    address: new mdc.textField.MDCTextField(address),
     year: new mdc.textField.MDCTextField(year),
-    pincode: new mdc.textField.MDCTextField(pincode),
     description: new mdc.textField.MDCTextField(description)
   };
+  journeyContainer.appendChild(frag);
   /**
    * handle listeners for name,year & Address field to autofill description;
    * 
@@ -705,118 +797,59 @@ function officeFlow() {
       inputFields.description.input_.dataset.typed = "yes";
     }
   });
-  [inputFields.name.input_, inputFields.year.input_, inputFields.address.input_].forEach(function (el) {
-    el.addEventListener('input', function (ev) {
-      handleOfficeDescription(category);
-    });
+  inputFields.year.input_.addEventListener('input', function (ev) {
+    if (inputFields.description.input_.dataset.typed === "yes") return;
+    inputFields.description.value = getOfficeDescription(officeMeta, inputFields.year.value);
   });
-  var nxtButton = nextButton();
+  nxtButton.element.removeAttribute('disabled');
   nxtButton.element.addEventListener('click', function () {
-    if (!inputFields.name.value) {
-      setHelperInvalid(inputFields.name, 'Enter your company name');
-      return;
-    }
-
-    ;
-
-    if (!inputFields.address.value) {
-      setHelperInvalid(inputFields.address, 'Enter your company address');
-      return;
-    }
-
-    ;
-
     if (inputFields.year.value && !isValidYear(inputFields.year.value)) {
       setHelperInvalid(inputFields.year, 'Enter correct year');
       return;
     }
 
-    isValidPincode(inputFields.pincode.value).then(function (isValid) {
-      if (!isValid) {
-        setHelperInvalid(inputFields.pincode, 'Enter correct PIN code');
-        return;
+    var officeData = {
+      gst: officeMeta.gstNumber,
+      description: inputFields.description.value,
+      yearOfEstablishment: inputFields.year.value,
+      companyLogo: companyLogo || "",
+      category: officeMeta.category,
+      timezone: "Asia/Kolkata"
+    };
+
+    if (!shouldProcessRequest(savedData, officeData)) {
+      handleOfficeRequestSuccess(officeData);
+      return;
+    }
+
+    var officeRequest = createRequestBodyForOffice(officeData, officeMeta.companyName);
+    nxtButton.setLoader();
+    sendOfficeRequest(officeRequest).then(function (res) {
+      if (res.officeId) {
+        officeData.officeId = res.officeId;
       }
 
-      var officeData = {
-        name: inputFields.name.value,
-        registeredOfficeAddress: inputFields.address.value,
-        pincode: inputFields.pincode.value,
-        description: inputFields.description.value,
-        yearOfEstablishment: inputFields.year.value,
-        companyLogo: companyLogo || "",
-        category: category,
-        template: 'office',
-        timezone: "Asia/Kolkata"
-      };
+      ;
 
-      if (!shouldProcessRequest(savedData, officeData)) {
-        handleOfficeRequestSuccess(officeData);
-        return;
+      if (res.office) {
+        officeData.name = res.office;
       }
 
-      var officeRequest = createRequestBodyForOffice(officeData);
-      nxtButton.setLoader();
-      sendOfficeRequest(officeRequest).then(function (res) {
-        if (res.officeId) {
-          officeData.officeId = res.officeId;
-        }
+      officeData.pstart = Date.now();
+      handleOfficeRequestSuccess(officeData);
 
-        ;
-        officeData.pstart = Date.now();
+      if (window.fbq) {
+        fbq('trackCustom', 'Office Created');
+      }
 
-        if (res.office) {
-          officeData.name = res.office;
-        }
-
-        handleOfficeRequestSuccess(officeData);
-
-        if (window.fbq) {
-          fbq('trackCustom', 'Office Created');
-        }
-
-        sendAcqusition();
-      }).catch(function (error) {
-        nxtButton.removeLoader();
-        var field;
-        var message;
-
-        if (error.message === "Office with the name '".concat(officeData.name, "' already exists")) {
-          field = inputFields.name;
-          message = "".concat(officeData.name, " already exists. Choose a differnt company name");
-        }
-
-        if (error.message === "Invalid registered address: '".concat(officeData.registeredOfficeAddress, "'")) {
-          field = inputFields.address;
-          message = "Enter a valid company address";
-        }
-
-        if (error.message === 'Pincode is not valid') {
-          field = inputFields.pincode;
-          message = 'PIN code is not correct';
-        }
-
-        ;
-
-        if (field) {
-          setHelperInvalid(field, message);
-          return;
-        }
-
-        ;
-        sendErrorLog({
-          message: error.message,
-          stack: error.stack
-        });
-      });
+      sendAcqusition();
+    }).catch(function (error) {
+      console.log(error);
+      nxtButton.removeLoader();
+      handleOfficeRejection(error, gstTextField);
     });
   });
-  journeyContainer.innerHTML = '';
-  journeyContainer.appendChild(frag);
-  actionsContainer.appendChild(nxtButton.element);
-  document.body.scrollTop = 0;
-}
-
-;
+};
 
 var removeSpecialCharsInside = function removeSpecialCharsInside(str) {
   var reverseText = str.split('').reverse().join('');
@@ -922,8 +955,8 @@ function choosePlan() {
   actionsContainer.appendChild(nextBtn.element);
 }
 
-var handlePayment = function handlePayment(officeData, plan) {
-  http('POST', "".concat(appKeys.getBaseUrl(), "/api/services/payment"), {
+var handlePayment = function handlePayment(officeData, plan, gstNumber) {
+  var body = {
     orderAmount: plan,
     orderCurrency: 'INR',
     office: officeData.name,
@@ -932,7 +965,9 @@ var handlePayment = function handlePayment(officeData, plan) {
     phoneNumber: firebase.auth().currentUser.phoneNumber,
     pstart: officeData.pstart,
     pend: officeData.pend
-  }).then(function (res) {
+  };
+  gstNumber ? body.gst = gstNumber : '';
+  http('POST', "".concat(appKeys.getBaseUrl(), "/api/services/payment"), body).then(function (res) {
     onboarding_data_save.set({
       plan: plan,
       orderId: res.orderId || '',
@@ -942,7 +977,7 @@ var handlePayment = function handlePayment(officeData, plan) {
     if (plan == 0) {
       history.pushState(history.state, null, basePathName + "".concat(window.location.search, "#employees"));
       incrementProgress();
-      addEmployeesFlow();
+      onboardingSucccess();
       return;
     }
 
@@ -950,13 +985,50 @@ var handlePayment = function handlePayment(officeData, plan) {
     incrementProgress();
     managePayment();
   }).catch(function (err) {
-    showSnacksApiResponse('An error occured. Try again later');
+    switch (err.message) {
+      case 'gst-not-present':
+        handleGSTForPayment(err, function (gstNumber) {
+          handlePayment(officeData, plan, gstNumber);
+        });
+        break;
+
+      default:
+        handleGSTForPayment(err);
+        showSnacksApiResponse('An error occured. Try again later');
+        break;
+    }
 
     try {
       nextBtn.removeLoader();
     } catch (e) {
       console.log(e);
     }
+  });
+};
+
+var handleGSTForPayment = function handleGSTForPayment(error, callback) {
+  var dialogEl = document.getElementById('ask-gst-dialog');
+  var dialog = new mdc.dialog.MDCDialog(dialogEl);
+  dialog.open();
+  var input = new mdc.textField.MDCTextField(document.getElementById('ask-gst-input'));
+  var submit = document.getElementById('ask-gst-btn');
+  handleOfficeRejection(error, input);
+  if (submit.dataset.clicked) return;
+  submit.addEventListener('click', function () {
+    submit.dataset.clicked = true;
+
+    if (!input.value) {
+      setHelperInvalid(input, 'GST Number cannot be empty');
+      return;
+    }
+
+    if (!isGstNumberValid(input.value)) {
+      setHelperInvalid(input, 'GST Number is incorrect');
+      return;
+    }
+
+    dialog.close();
+    callback(input.value);
   });
 };
 
@@ -1298,8 +1370,8 @@ var showTransactionDialog = function showTransactionDialog(paymentResponse, offi
       }
 
       history.pushState(history.state, null, basePathName + "".concat(window.location.search, "#employees"));
-      addEmployeesFlow();
       incrementProgress();
+      onboardingSucccess();
       return;
     }
 
@@ -1831,7 +1903,7 @@ var createImage = function createImage(base64, inputFile, companyLogo) {
  */
 
 
-var createRequestBodyForOffice = function createRequestBodyForOffice(officeData) {
+var createRequestBodyForOffice = function createRequestBodyForOffice(officeData, officeName) {
   var url = "".concat(appKeys.getBaseUrl(), "/api/services/office");
   var savedData = onboarding_data_save.get();
   var req = {
@@ -1840,7 +1912,7 @@ var createRequestBodyForOffice = function createRequestBodyForOffice(officeData)
     method: 'POST'
   };
 
-  if (onboarding_data_save.get().name === officeData.name) {
+  if (onboarding_data_save.get().name === officeName) {
     url = "".concat(appKeys.getBaseUrl(), "/api/activities/update");
     var template = {
       schedule: [{
@@ -1924,22 +1996,14 @@ var isValidYear = function isValidYear(year) {
   return true;
 };
 
-var handleOfficeDescription = function handleOfficeDescription(category) {
-  var nameEl = document.querySelector('#company-name input');
-  var year = document.querySelector('#year input');
-  var address = document.querySelector('#address');
-  var description = document.querySelector('#description');
-  new mdc.textField.MDCTextField(description.parentNode.parentNode);
-  if (!nameEl.value) return;
-  if (description.dataset.typed === "yes") return;
-  var string = "".concat(nameEl.value, " is ").concat(prefixForVowel(category), " ").concat(category, " company").concat(address.value ? ", based out of ".concat(address.value) : '').concat(year.value > 0 ? ". They have been in business since ".concat(year.value) : '');
-  description.value = string;
+var getOfficeDescription = function getOfficeDescription(officeMeta, year) {
+  return "".concat(officeMeta.companyName, " is ").concat(prefixForVowel(officeMeta.category), " ").concat(officeMeta.category, " company").concat(officeMeta.address ? ", based out of ".concat(officeMeta.address, ".") : '', " ").concat(year && year > 0 ? " They have been in business since ".concat(year) : '');
 };
 /**
- *  returns a/an if a string first character is a vowel
+ * returns a/an if a string first character is a vowel
  * @param {string} string
  * @returns {string} a/an
- */
+*/
 
 
 var prefixForVowel = function prefixForVowel(string) {
@@ -2193,128 +2257,16 @@ var userList = function userList(contact, index) {
   return li;
 };
 
-function addEmployeesFlow() {
-  journeyHeadline.innerHTML = 'Add employees by using any one of these methods'; // 1. Load the JavaScript client library.
-
-  gapi.load('client', start);
-  var secondaryTextContacts = createElement('div', {
-    className: 'onboarding-headline--secondary',
-    id: 'onboarding-headline-contacts',
-    textContent: 'Import from Google contacts'
-  });
-  var authorizeContainer = createElement('div', {
-    className: 'import-cont'
-  });
-  var text = createElement('h2');
-  text.innerHTML = "<span  class=\"line-center\">Or</span>";
-  var authorize = createElement('button', {
-    className: 'mdc-button mdc-button--raised',
-    id: 'authorize_button',
-    textContent: 'Import from Google contacts'
-  });
-  var authorizeError = createElement('div', {
-    className: 'mdc-theme--error authorize-failed',
-    id: 'authorize-error'
-  });
-  authorize.addEventListener('click', function () {
-    gapi.auth2.getAuthInstance().signIn();
-  });
-  authorizeContainer.appendChild(secondaryTextContacts);
-  authorizeContainer.appendChild(authorize);
-  authorizeContainer.appendChild(authorizeError);
-  var employeesContainer = createElement('div', {
-    className: 'employees-container'
-  });
-  var selectionContainer = createElement('div', {
-    className: 'user-selection'
-  });
-  var importedText = createElement('div', {
-    className: 'imported-number'
-  });
-  var selectedPeople = createElement('div', {
-    className: 'selected-people mdc-typography--headline5'
-  });
-  var searchCont = createElement('div', {
-    className: 'search-bar--container'
-  });
-  var contactListLabel = createElement('div', {
-    className: 'contact-list--label mdc-typography--headline6'
-  });
-  var ul = createElement('ul', {
-    className: 'mdc-list mdc-list--two-line mdc-list--avatar-list',
-    id: 'contacts-list'
-  });
-  ul.setAttribute('aria-label', 'List with checkbox items');
-  ul.setAttribute('role', 'group');
-  selectionContainer.appendChild(selectedPeople);
-  selectionContainer.appendChild(searchCont);
-  selectionContainer.appendChild(contactListLabel);
-  selectionContainer.appendChild(ul);
-  selectionContainer.appendChild(importedText);
-  var shareContainer = createElement('div', {
-    className: 'share-container'
-  });
-  var officeName = onboarding_data_save.get().name;
-  var loader = createElement('div', {
-    className: 'straight-loader'
-  });
-  shareContainer.appendChild(loader);
-  var shareLink;
-  waitTillCustomClaimsUpdate(officeName, function () {
-    getShareLink(onboarding_data_save.get().name).then(function (response) {
-      var secondaryTextShareLink = createElement('div', {
-        className: 'onboarding-headline--secondary',
-        textContent: 'Invite employees by sharing this download link with them.'
-      });
-      shareLink = response.shortLink;
-      loader.remove();
-      shareContainer.appendChild(text);
-      shareContainer.appendChild(secondaryTextShareLink);
-      shareContainer.appendChild(shareWidget(shareLink));
-    }).catch(console.error);
-  });
-  employeesContainer.appendChild(selectionContainer);
-  employeesContainer.appendChild(authorizeContainer);
-  employeesContainer.appendChild(shareContainer);
-  journeyContainer.innerHTML = '';
-  journeyContainer.appendChild(employeesContainer);
-  var nxtButton = nextButton();
-  nxtButton.element.addEventListener('click', function () {
-    var selectedUsers = onboarding_data_save.get().users;
-
-    if (selectedUsers && Object.keys(selectedUsers).length > 0) {
-      nxtButton.setLoader();
-      var array = [];
-      Object.keys(selectedUsers).forEach(function (user) {
-        array.push(selectedUsers[user]);
-      });
-      http('POST', "".concat(appKeys.getBaseUrl(), "/api/services/addUsers"), {
-        office: onboarding_data_save.get().name,
-        users: array
-      }).then(function (res) {
-        nxtButton.removeLoader();
-        history.pushState(history.state, null, basePathName + "".concat(window.location.search, "#completed"));
-        incrementProgress();
-        onboardingSucccess(shareLink);
-      }).catch(function (err) {
-        nxtButton.removeLoader();
-      });
-      return;
-    }
-
-    history.pushState(history.state, null, basePathName + "".concat(window.location.search, "#completed"));
-    onboardingSucccess(shareLink);
-  });
-  actionsContainer.appendChild(nxtButton.element);
-}
-
-var onboardingSucccess = function onboardingSucccess(shareLink) {
+var onboardingSucccess = function onboardingSucccess() {
   var isNewUser = new URLSearchParams(window.location.search).get('new_user');
   journeyHeadline.innerHTML = isNewUser ? 'Account creation successful!' : 'Account updated successful';
   localStorage.setItem("completed", "true");
-  journeyContainer.innerHTML = "\n    <div class='completion-container'>\n    <h1 class='onboarding-headline--secondary mt-0 mb-0'>Congratulations you can now start tracking your employees</h1>\n\n    <svg class=\"checkmark\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 52 52\"><circle class=\"checkmark__circle\" cx=\"26\" cy=\"26\" r=\"25\" fill=\"none\"/><path class=\"checkmark__check\" fill=\"none\" d=\"M14.1 27.2l7.1 7.2 16.7-16.8\"/></svg>\n    <a type=\"button\" class=\"mdc-button mdc-dialog__button mdc-button--raised\" data-mdc-dialog-action=\"close\" href=\"/admin/?new_user=1\" style=\"    width: 200px;\n    margin: 0 auto;\n    display: flex;\n    text-align: center;\n    margin-top: 20px;\n    margin-bottom: 20px;\n    height: 48px;\n    font-size: 21px;\">\n        <div class=\"mdc-button__ripple\"></div>\n        <span class=\"mdc-button__label\">Continue</span>\n    </a>\n        <p class='mdc-typography--headline5 text-center mb-0 mt-0' style='padding-top:10px;border-top:1px solid #ccc'>Download the app and try it</p>\n        <div class=\"full-width\">\n          <div style=\"width: 300px;display: block;margin: 0 auto;\">\n            <div style=\"width: 100%;display: inline-flex;align-items: center;\">\n              <div class=\"play-store\">\n                <a\n                  href=\"https://play.google.com/store/apps/details?id=com.growthfile.growthfileNew&amp;pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1\"><img\n                    alt=\"Get it on Google Play\"\n                    src=\"https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png\"></a>\n              </div>\n              <div class=\"app-store full-width\">\n                <a href=\"https://apps.apple.com/in/app/growthfile-gps-attendance-app/id1441388774?mt=8\"\n                  style=\"display:inline-block;overflow:hidden;background:url(https://linkmaker.itunes.apple.com/en-gb/badge-lrg.svg?releaseDate=2018-12-06&amp;kind=iossoftware&amp;bubble=ios_apps) no-repeat;width:135px;height:40px;\"></a>\n              </div>\n            </div>\n          </div>\n      </div>\n      ".concat(shareLink ? " <div class='share-container'>\n          <h2><span class=\"line-center\">Or</span></h2>\n          <p class='mt-10 mb-0 mdc-typography--headline6 text-center'>Invite employees by sharing this download link with them.</p>\n            ".concat(shareWidget(shareLink).outerHTML, "\n      </div>") : '', "\n    </div>");
+  journeyContainer.innerHTML = "\n    <div class='completion-container'>\n    <h1 class='onboarding-headline--secondary mt-0 mb-0'>Congratulations you can now start tracking your employees</h1>\n\n    <svg class=\"checkmark\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 52 52\"><circle class=\"checkmark__circle\" cx=\"26\" cy=\"26\" r=\"25\" fill=\"none\"/><path class=\"checkmark__check\" fill=\"none\" d=\"M14.1 27.2l7.1 7.2 16.7-16.8\"/></svg>\n    <a type=\"button\" class=\"mdc-button mdc-dialog__button mdc-button--raised\" data-mdc-dialog-action=\"close\" href=\"/admin/?new_user=1\" style=\"    width: 200px;\n    margin: 0 auto;\n    display: flex;\n    text-align: center;\n    margin-top: 20px;\n    margin-bottom: 20px;\n    height: 48px;\n    font-size: 21px;\">\n        <div class=\"mdc-button__ripple\"></div>\n        <span class=\"mdc-button__label\">Continue</span>\n    </a>\n        <p class='mdc-typography--headline5 text-center mb-0 mt-0' style='padding-top:10px;border-top:1px solid #ccc'>Download the app and try it</p>\n        <div class=\"full-width\">\n          <div style=\"width: 300px;display: block;margin: 0 auto;\">\n            <div style=\"width: 100%;display: inline-flex;align-items: center;\">\n              <div class=\"play-store\">\n                <a\n                  href=\"https://play.google.com/store/apps/details?id=com.growthfile.growthfileNew&amp;pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1\"><img\n                    alt=\"Get it on Google Play\"\n                    src=\"https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png\"></a>\n              </div>\n              <div class=\"app-store full-width\">\n                <a href=\"https://apps.apple.com/in/app/growthfile-gps-attendance-app/id1441388774?mt=8\"\n                  style=\"display:inline-block;overflow:hidden;background:url(https://linkmaker.itunes.apple.com/en-gb/badge-lrg.svg?releaseDate=2018-12-06&amp;kind=iossoftware&amp;bubble=ios_apps) no-repeat;width:135px;height:40px;\"></a>\n              </div>\n            </div>\n          </div>\n      </div>\n      <div id='success-share-link'>\n      </div>\n    </div>";
   actionsContainer.innerHTML = '';
   fbq('trackCustom', 'Onboarding Completed');
+  getShareLink(onboarding_data_save.get().name).then(function (response) {
+    document.getElementById('success-share-link').innerHTML = " <div class='share-container'>\n        <h2><span class=\"line-center\">Or</span></h2>\n        <p class='mt-10 mb-0 mdc-typography--headline6 text-center'>Invite employees by sharing this download link with them.</p>\n            ".concat(shareWidget(shareLink).outerHTML, "\n    </div>");
+  }).catch(console.error);
 };
 
 var onboarding_data_save = function () {
@@ -2372,7 +2324,7 @@ var textFieldFilled = function textFieldFilled(attr) {
 
 var textFieldOutlined = function textFieldOutlined(attrs) {
   var label = createElement('label', {
-    className: 'mdc-text-field mdc-text-field--outlined',
+    className: "mdc-text-field mdc-text-field--outlined ".concat(attrs.className ? attrs.className : ''),
     id: attrs.id || ''
   });
 
@@ -2414,7 +2366,7 @@ var textFieldOutlinedWithoutLabel = function textFieldOutlinedWithoutLabel(attr)
 
 var textAreaOutlined = function textAreaOutlined(attr) {
   var label = createElement('label', {
-    className: 'mdc-text-field mdc-text-field--outlined mdc-text-field--textarea'
+    className: "mdc-text-field mdc-text-field--outlined mdc-text-field--textarea ".concat(attr.value ? 'mdc-text-field--label-floating' : '')
   });
 
   if (attr.value) {
