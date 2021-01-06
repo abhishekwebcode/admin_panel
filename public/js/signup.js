@@ -127,10 +127,10 @@ window.addEventListener('popstate', ev => {
             break;
         case 'payment':
             history.pushState(null, null, basePathName + `${window.location.search}#employees`)
-            fnName = addEmployeesFlow;
+            fnName = onboardingSucccess;
             break;
         case 'employees':
-            fnName = addEmployeesFlow;
+            fnName = onboardingSucccess;
             break;
         default:
             fnName = redirect;
@@ -181,14 +181,14 @@ const initJourney = () => {
         const newUser = searchParams.get('new_user') && searchParams.get('new_user') === "1";
         const office = searchParams.get('office');
 
-        // if (!isAdmin(idTokenResult) && newUser && !office) {
-        onboarding_data_save.set({
-            status: 'PENDING'
-        })
-        history.pushState(history.state, null, basePathName + `?new_user=1#welcome`)
-        initFlow();
-        return
-        // }
+        if (!isAdmin(idTokenResult) && newUser && !office) {
+            onboarding_data_save.set({
+                status: 'PENDING'
+            })
+            history.pushState(history.state, null, basePathName + `?new_user=1#welcome`)
+            initFlow();
+            return
+        }
 
 
         if (!office) return redirect('/index.html')
@@ -212,7 +212,7 @@ const initJourney = () => {
                 officeId: officeActivity.activityId,
                 firstContact: officeActivity.creator,
                 category: officeActivity.attachment.Category ? officeActivity.attachment.Category.value : '',
-                registeredOfficeAddress: officeActivity.attachment['Registered Office Address'].value,
+                registeredOfficeAddress: officeActivity.attachment['Registered Office Address'] ? officeActivity.attachment['Registered Office Address'].value : '',
                 pincode: officeActivity.attachment.Pincode ? officeActivity.attachment.Pincode.value : '',
                 description: officeActivity.attachment.Description.value,
                 yearOfEstablishment: officeActivity.attachment['Year Of Establishment'] ? officeActivity.attachment['Year Of Establishment'].value : '',
@@ -255,13 +255,13 @@ const getPaymentEnd = (endTime) => {
 
 
 
-const nextButton = (text = 'Next') => {
+const nextButton = (text = 'Next', id = 'journey-next') => {
     if (document.getElementById('journey-next')) {
         document.getElementById('journey-next').remove();
     }
     const button = createElement('button', {
         className: 'mdc-button mdc-button--raised',
-        id: 'journey-next'
+        id: id
 
     })
 
@@ -578,6 +578,24 @@ const isGstNumberValid = (number) => {
     return /\d{2}[A-Z]{5}\d{4}[A-Z]{1}[A-Z\d]{1}[Z]{1}[A-Z\d]{1}/.test(number)
 }
 
+const handleOfficeRejection = (error, tf) => {
+    switch (error.message) {
+        case 'invalid-gst':
+            setHelperInvalid(tf, 'GST Number is incorrect')
+            break;
+        case 'gst-already-present':
+            setHelperInvalid(tf, 'This GST Number is already associated with another office')
+            break;
+        default:
+            showSnacksApiResponse(error.message)
+            sendErrorLog({
+                message: error.message,
+                stack: error.stack
+            });
+            break;
+    }
+}
+
 function officeFlow(category = onboarding_data_save.get().category) {
     incrementProgress();
     journeyHeadline.innerHTML = 'Tell us about your company';
@@ -590,6 +608,9 @@ function officeFlow(category = onboarding_data_save.get().category) {
         className: 'mdc-layout-grid__inner mt-20',
         style: 'width:100%'
     })
+
+    const nxtButton = nextButton();
+    nxtButton.element.setAttribute('disabled', 'true')
 
     const gridText = createElement('div', {
         className: 'mdc-layout-grid__cell--span-3-phone mdc-layout-grid__cell--span-6-tablet mdc-layout-grid__cell--span-10-desktop'
@@ -607,60 +628,53 @@ function officeFlow(category = onboarding_data_save.get().category) {
     gridText.appendChild(gstNumberField)
     gridText.appendChild(textFieldHelper())
     const gstNumber = new mdc.textField.MDCTextField(gstNumberField)
-    const getOfficeDetails = createElement('button', {
-        type: 'button',
-        className: 'mdc-button mdc-button--raised mdc-layout-grid__cell--span-1-phone mdc-layout-grid__cell--span-2-tablet mdc-layout-grid__cell--span-2-desktop',
-        style: 'height:56px',
-        textContent: 'Search'
-    })
-    getOfficeDetails.addEventListener('click', () => {
+    const searchGstBtn = nextButton('Search', 'seach-gst')
+    searchGstBtn.element.classList.add('mdc-layout-grid__cell--span-1-phone', 'mdc-layout-grid__cell--span-2-tablet', 'mdc-layout-grid__cell--span-2-desktop', 'search-button-gst')
+    searchGstBtn.element.addEventListener('click', () => {
         if (!gstNumber.value) {
             setHelperInvalid(gstNumber, 'GST Number cannot be empty')
             return
         }
-        if (!isGstNumberValid) {
+        if (!isGstNumberValid(gstNumber.value)) {
             setHelperInvalid(gstNumber, 'GST Number is incorrect')
             return
         }
-
-        http('GET', `${appKeys.getBaseUrl()}/api/services/gstLookupOffice?gst=${gstNumber.value}`)
+        searchGstBtn.setLoader()
+        http('GET', `${appKeys.getBaseUrl()}/api/services/officeGSTLookup?gst=${gstNumber.value}`)
             .then(gstResult => {
-                setHelperValid(gstNumber)
-
+                searchGstBtn.removeLoader()
+                nxtButton.removeLoader()
+                setHelperValid(gstNumber);
                 gstResult.gstNumber = gstNumber.value;
                 gstResult.category = category;
-                showOfficeForm(gstResult)
+                showOfficeForm(gstResult, nxtButton, gstNumber)
             }).catch(error => {
-                switch (error.message) {
-                    case 'gst number is not valid':
-                        setHelperInvalid(gstNumber, 'GST Number is incorrects')
-                        break;
-                    default:
-                        setHelperInvalid(gstNumber, error.message)
-                        break;
-                }
+                console.log(error)
+                searchGstBtn.removeLoader()
+                handleOfficeRejection(error, gstNumber)
             })
     })
 
 
+    journeyContainer.innerHTML = ''
     gstCont.appendChild(gridText)
-    gstCont.appendChild(getOfficeDetails)
+    gstCont.appendChild(searchGstBtn.element)
     officeContainer.appendChild(createElement('p', {
         className: '',
         textContent: 'GSTIN helps us generate accurate E-invoices for you'
     }))
     officeContainer.appendChild(gstCont)
-    // officeContainer.appendChild(detailsCont)
-
-    journeyContainer.innerHTML = ''
     journeyContainer.appendChild(officeContainer)
-    const nxtButton = nextButton();
-    nxtButton.element.setAttribute('disabled', 'true')
+
+
     actionsContainer.appendChild(nxtButton.element);
     document.body.scrollTop = 0;
 };
 
-const showOfficeForm = (officeMeta, nxtButton) => {
+const showOfficeForm = (officeMeta, nxtButton, gstTextField) => {
+    if(document.getElementById('details-cont')) {
+        document.getElementById('details-cont').remove()
+    }
     const detailsCont = createElement('div', {
         id: 'details-cont',
         className: 'mt-20'
@@ -671,7 +685,14 @@ const showOfficeForm = (officeMeta, nxtButton) => {
     const savedData = onboarding_data_save.get();
 
 
-
+    detailsCont.appendChild(createElement('div', {
+        className: 'mt-20',
+        innerHTML: `Company Name: <b>${officeMeta.companyName}</b>`
+    }))
+    detailsCont.appendChild(createElement('div', {
+        className: 'mt-10',
+        innerHTML: `Address: <b>${officeMeta.address}</b>`
+    }))
 
     const year = textFieldOutlined({
         type: 'number',
@@ -692,9 +713,11 @@ const showOfficeForm = (officeMeta, nxtButton) => {
         className: 'logo-text',
         textContent: 'Company logo'
     })
+
     const logo = createElement('input', {
         type: 'file',
-        accept: 'image/*'
+        accept: 'image/*',
+        'data-max-file-size':'10485760'
     });
 
     let companyLogo;
@@ -702,16 +725,32 @@ const showOfficeForm = (officeMeta, nxtButton) => {
 
     // open file explorer and get image
     logo.addEventListener('change', (ev) => {
-        getImageBase64(ev).then(base64 => {
+        getImageBase64(ev,0.5,parseInt(logo.dataset.maxFileSize)).then(base64 => {
             companyLogo = base64;
             if (document.querySelector('.image-cont')) {
                 document.querySelector('.image-cont').remove()
             }
             logoCont.appendChild(createImage(companyLogo, logo, companyLogo));
-        }).catch(console.error);
+        }).catch(err=>{
+            const imageErrorEl = document.getElementById("image-upload-error")
+            switch (err.message) {
+                case 'file-size-too-large':
+                    imageErrorEl.textContent = 'Compay logo image size  should be less than 10MB'
+                    break
+                case 'file-not-exist':
+                    imageErrorEl.textContent = 'File does not exist'
+                    break
+                default:
+                    imageErrorEl.textContent = error.message
+            }
+        });
     })
+
     actionCont.appendChild(logoText);
     actionCont.appendChild(logo);
+    actionCont.appendChild(createElement('div',{
+        id:'image-upload-error'
+    }))
     logoCont.appendChild(actionCont);
     if (savedData.companyLogo) {
         companyLogo = savedData.companyLogo;
@@ -724,9 +763,9 @@ const showOfficeForm = (officeMeta, nxtButton) => {
         rows: 4,
         cols: 8,
         id: 'description',
-        value: savedData.description || ''
+        value: savedData.description || '',
+        value: getOfficeDescription(officeMeta)
     })
-
 
     detailsCont.appendChild(createElement('div', {
         className: 'onboarding-content--text mdc-typography--headline6',
@@ -749,17 +788,18 @@ const showOfficeForm = (officeMeta, nxtButton) => {
     detailsCont.appendChild(textFieldHelper())
     frag.appendChild(detailsCont)
 
+
     const inputFields = {
         year: new mdc.textField.MDCTextField(year),
         description: new mdc.textField.MDCTextField(description),
     }
 
+    journeyContainer.appendChild(frag);
+
     /**
      * handle listeners for name,year & Address field to autofill description;
      * 
      */
-
-
     inputFields.description.input_.addEventListener('input', () => {
         if (!inputFields.description.value.trim()) {
             inputFields.description.input_.dataset.typed = "no";
@@ -768,13 +808,14 @@ const showOfficeForm = (officeMeta, nxtButton) => {
         }
     });
 
-    [inputFields.name.input_, inputFields.year.input_, inputFields.address.input_].forEach(el => {
-        el.addEventListener('input', (ev) => {
-            handleOfficeDescription(category)
-        })
-    });
 
+    
+    inputFields.year.input_.addEventListener('input', (ev) => {
+        if (inputFields.description.input_.dataset.typed === "yes") return;
+         inputFields.description.value = getOfficeDescription(officeMeta,inputFields.year.value)
+    })
 
+    nxtButton.element.removeAttribute('disabled')
     nxtButton.element.addEventListener('click', () => {
 
         if (inputFields.year.value && !isValidYear(inputFields.year.value)) {
@@ -789,27 +830,22 @@ const showOfficeForm = (officeMeta, nxtButton) => {
             companyLogo: companyLogo || "",
             category: officeMeta.category,
             timezone: "Asia/Kolkata",
-            firstContact: {
-                phoneNumber: firebase.auth().currentUser.phoneNumber
-            }
         };
         if (!shouldProcessRequest(savedData, officeData)) {
             handleOfficeRequestSuccess(officeData);
             return;
         }
-        const officeRequest = createRequestBodyForOffice(officeData)
+        const officeRequest = createRequestBodyForOffice(officeData,officeMeta.companyName)
         nxtButton.setLoader();
 
         sendOfficeRequest(officeRequest).then(res => {
             if (res.officeId) {
                 officeData.officeId = res.officeId;
             };
-
-            officeData.pstart = Date.now();
             if (res.office) {
                 officeData.name = res.office;
             }
-
+            officeData.pstart = Date.now();
             handleOfficeRequestSuccess(officeData);
             if (window.fbq) {
                 fbq('trackCustom', 'Office Created')
@@ -817,37 +853,13 @@ const showOfficeForm = (officeMeta, nxtButton) => {
 
             sendAcqusition();
         }).catch(function (error) {
-
+            console.log(error)
             nxtButton.removeLoader();
-            let field;
-            let message
-            if (error.message === `Office with the name '${officeData.name}' already exists`) {
-                field = inputFields.name;
-                message = `${officeData.name} already exists. Choose a differnt company name`;
-            }
-            if (error.message === `Invalid registered address: '${officeData.registeredOfficeAddress}'`) {
-                field = inputFields.address;
-                message = `Enter a valid company address`;
-            }
-            if (error.message === 'Pincode is not valid') {
-                field = inputFields.pincode;
-                message = 'PIN code is not correct';
-            };
-
-            if (field) {
-                setHelperInvalid(field, message);
-                return;
-            };
-            sendErrorLog({
-                message: error.message,
-                stack: error.stack
-            });
+            handleOfficeRejection(error, gstTextField)
         })
-
     })
-    journeyContainer.appendChild(frag);
-
 }
+
 
 const removeSpecialCharsInside = str => {
     const reverseText = str.split('').reverse().join('');
@@ -974,8 +986,8 @@ function choosePlan() {
     actionsContainer.appendChild(nextBtn.element);
 }
 
-const handlePayment = (officeData, plan) => {
-    http('POST', `${appKeys.getBaseUrl()}/api/services/payment`, {
+const handlePayment = (officeData, plan, gstNumber) => {
+    const body = {
         orderAmount: plan,
         orderCurrency: 'INR',
         office: officeData.name,
@@ -983,8 +995,11 @@ const handlePayment = (officeData, plan) => {
         paymentMethod: "pgCashfree",
         phoneNumber: firebase.auth().currentUser.phoneNumber,
         pstart: officeData.pstart,
-        pend: officeData.pend
-    }).then(res => {
+        pend: officeData.pend,
+    }
+    gstNumber ? body.gstNumber = gstNumber : ''
+
+    http('POST', `${appKeys.getBaseUrl()}/api/services/payment`, body).then(res => {
         onboarding_data_save.set({
             plan: plan,
             orderId: res.orderId || '',
@@ -993,21 +1008,53 @@ const handlePayment = (officeData, plan) => {
         if (plan == 0) {
             history.pushState(history.state, null, basePathName + `${window.location.search}#employees`);
             incrementProgress();
-            addEmployeesFlow();
+            onboardingSucccess()
             return
         }
         history.pushState(history.state, null, basePathName + `${window.location.search}#payment`)
         incrementProgress();
         managePayment();
     }).catch(err => {
-        showSnacksApiResponse('An error occured. Try again later');
+        switch (err.message) {
+            case 'gst-not-present':
+                handleGSTForPayment(err, (gstNumber) => {
+                    handlePayment(officeData, plan, gstNumber)
+                })
+                break;
+            default:
+                handleGSTForPayment(err)
+                showSnacksApiResponse('An error occured. Try again later');
+                break;
+        }
         try {
             nextBtn.removeLoader();
         } catch (e) {
             console.log(e)
         }
     })
+}
 
+const handleGSTForPayment = (error, callback) => {
+    const dialogEl = document.getElementById('ask-gst-dialog')
+    const dialog = new mdc.dialog.MDCDialog(dialogEl)
+    dialog.open = true
+    const input = dialogEl.querySelector('.mdc-text-field').MDCTextField;
+    const submit = document.getElementById('ask-gst-btn')
+
+    handleOfficeRejection(error, input)
+
+    submit.addEventListener('click', () => {
+        if (!input.value) {
+            setHelperInvalid(input, 'GST Number cannot be empty')
+            return
+        }
+        if (!isGstNumberValid(input.value)) {
+            setHelperInvalid(input, 'GST Number is incorrect')
+            return
+        }
+        dialog.close();
+        callback(input.value)
+    })
 }
 
 
@@ -1340,8 +1387,8 @@ const showTransactionDialog = (paymentResponse, officeId) => {
                 redirect('/admin/index.html?renewd=1')
             }
             history.pushState(history.state, null, basePathName + `${window.location.search}#employees`);
-            addEmployeesFlow();
             incrementProgress();
+            onboardingSucccess()
             return
         }
         managePayment();
@@ -1978,7 +2025,7 @@ const createImage = (base64, inputFile, companyLogo) => {
  * @param {object} officeData 
  * @returns {object} req
  */
-const createRequestBodyForOffice = (officeData) => {
+const createRequestBodyForOffice = (officeData,officeName) => {
     let url = `${appKeys.getBaseUrl()}/api/services/office`;
     const savedData = onboarding_data_save.get()
     const req = {
@@ -1986,7 +2033,7 @@ const createRequestBodyForOffice = (officeData) => {
         data: '',
         method: 'POST'
     }
-    if (onboarding_data_save.get().name === officeData.name) {
+    if (onboarding_data_save.get().name === officeName) {
 
         url = `${appKeys.getBaseUrl()}/api/activities/update`;
         const template = {
@@ -2069,24 +2116,17 @@ const isValidYear = (year) => {
     return true
 }
 
-const handleOfficeDescription = (category) => {
-    const nameEl = document.querySelector('#company-name input');
-    const year = document.querySelector('#year input');
-    const address = document.querySelector('#address');
-    const description = document.querySelector('#description');
-    new mdc.textField.MDCTextField(description.parentNode.parentNode);
-    if (!nameEl.value) return;
-    if (description.dataset.typed === "yes") return;
-    let string = `${nameEl.value} is ${prefixForVowel(category)} ${category} company${address.value?`, based out of ${address.value}`:''}${year.value >0?`. They have been in business since ${year.value}`:''}`;
-    description.value = string;
+const getOfficeDescription = (officeMeta,year) => {
+    return `${officeMeta.companyName} is ${prefixForVowel(officeMeta.category)} ${officeMeta.category} company${officeMeta.address ?`, based out of ${officeMeta.address}.`:''} ${year && year > 0?` They have been in business since ${year}`:''}`
 }
 
 
 /**
- *  returns a/an if a string first character is a vowel
+ * returns a/an if a string first character is a vowel
  * @param {string} string
  * @returns {string} a/an
- */
+*/
+
 const prefixForVowel = (string) => {
     const firstChar = string.charAt(0);
     //vowel regex test
@@ -2366,136 +2406,11 @@ const userList = (contact, index) => {
     return li;
 }
 
-function addEmployeesFlow() {
-    journeyHeadline.innerHTML = 'Add employees by using any one of these methods';
-    // 1. Load the JavaScript client library.
-    gapi.load('client', start);
-    const secondaryTextContacts = createElement('div', {
-        className: 'onboarding-headline--secondary',
-        id: 'onboarding-headline-contacts',
-        textContent: 'Import from Google contacts'
-    })
-    const authorizeContainer = createElement('div', {
-        className: 'import-cont'
-    })
-    const text = createElement('h2')
-    text.innerHTML = `<span  class="line-center">Or</span>`
-
-    const authorize = createElement('button', {
-        className: 'mdc-button mdc-button--raised',
-        id: 'authorize_button',
-        textContent: 'Import from Google contacts'
-    })
-    const authorizeError = createElement('div', {
-        className: 'mdc-theme--error authorize-failed',
-        id: 'authorize-error'
-    });
-
-    authorize.addEventListener('click', () => {
-        gapi.auth2.getAuthInstance().signIn();
-    })
-    authorizeContainer.appendChild(secondaryTextContacts)
-    authorizeContainer.appendChild(authorize);
-    authorizeContainer.appendChild(authorizeError)
-
-
-    const employeesContainer = createElement('div', {
-        className: 'employees-container'
-    })
-
-    const selectionContainer = createElement('div', {
-        className: 'user-selection'
-    })
-
-    const importedText = createElement('div', {
-        className: 'imported-number'
-    })
-    const selectedPeople = createElement('div', {
-        className: 'selected-people mdc-typography--headline5'
-    })
-    const searchCont = createElement('div', {
-        className: 'search-bar--container'
-    });
-    const contactListLabel = createElement('div', {
-        className: 'contact-list--label mdc-typography--headline6'
-    });
-    const ul = createElement('ul', {
-        className: 'mdc-list mdc-list--two-line mdc-list--avatar-list',
-        id: 'contacts-list'
-    })
-    ul.setAttribute('aria-label', 'List with checkbox items');
-    ul.setAttribute('role', 'group');
-    selectionContainer.appendChild(selectedPeople);
-    selectionContainer.appendChild(searchCont);
-    selectionContainer.appendChild(contactListLabel);
-    selectionContainer.appendChild(ul);
-    selectionContainer.appendChild(importedText);
-
-
-    const shareContainer = createElement('div', {
-        className: 'share-container'
-    });
-
-
-    const officeName = onboarding_data_save.get().name
-    const loader = createElement('div', {
-        className: 'straight-loader'
-    })
-    shareContainer.appendChild(loader)
-    let shareLink;
-    waitTillCustomClaimsUpdate(officeName, function () {
-
-        getShareLink(onboarding_data_save.get().name).then(response => {
-            const secondaryTextShareLink = createElement('div', {
-                className: 'onboarding-headline--secondary',
-                textContent: 'Invite employees by sharing this download link with them.'
-            })
-            shareLink = response.shortLink
-            loader.remove();
-            shareContainer.appendChild(text)
-            shareContainer.appendChild(secondaryTextShareLink);
-            shareContainer.appendChild(shareWidget(shareLink))
-        }).catch(console.error)
-    })
-
-    employeesContainer.appendChild(selectionContainer)
-    employeesContainer.appendChild(authorizeContainer);
-    employeesContainer.appendChild(shareContainer);
-    journeyContainer.innerHTML = ''
-    journeyContainer.appendChild(employeesContainer)
-    const nxtButton = nextButton();
-    nxtButton.element.addEventListener('click', () => {
-        const selectedUsers = onboarding_data_save.get().users;
-
-        if (selectedUsers && Object.keys(selectedUsers).length > 0) {
-            nxtButton.setLoader();
-            const array = []
-            Object.keys(selectedUsers).forEach(user => {
-                array.push(selectedUsers[user])
-            })
-            http('POST', `${appKeys.getBaseUrl()}/api/services/addUsers`, {
-                office: onboarding_data_save.get().name,
-                users: array
-            }).then(res => {
-                nxtButton.removeLoader();
-                history.pushState(history.state, null, basePathName + `${window.location.search}#completed`);
-                incrementProgress();
-                onboardingSucccess(shareLink)
-
-            }).catch(err => {
-                nxtButton.removeLoader();
-            })
-            return
-        }
-        history.pushState(history.state, null, basePathName + `${window.location.search}#completed`);
-        onboardingSucccess(shareLink)
-    });
-    actionsContainer.appendChild(nxtButton.element);
-}
 
 
 
-const onboardingSucccess = (shareLink) => {
+const onboardingSucccess = () => {
+
     const isNewUser = new URLSearchParams(window.location.search).get('new_user');
 
     journeyHeadline.innerHTML = isNewUser ? 'Account creation successful!' : 'Account updated successful';
@@ -2533,14 +2448,18 @@ const onboardingSucccess = (shareLink) => {
             </div>
           </div>
       </div>
-      ${shareLink ? ` <div class='share-container'>
-          <h2><span class="line-center">Or</span></h2>
-          <p class='mt-10 mb-0 mdc-typography--headline6 text-center'>Invite employees by sharing this download link with them.</p>
-            ${shareWidget(shareLink).outerHTML}
-      </div>` :''}
+      <div id='success-share-link'>
+      </div>
     </div>`;
     actionsContainer.innerHTML = '';
     fbq('trackCustom', 'Onboarding Completed');
+    getShareLink(onboarding_data_save.get().name).then(response => {
+        document.getElementById('success-share-link').innerHTML = ` <div class='share-container'>
+        <h2><span class="line-center">Or</span></h2>
+        <p class='mt-10 mb-0 mdc-typography--headline6 text-center'>Invite employees by sharing this download link with them.</p>
+            ${shareWidget(shareLink).outerHTML}
+    </div>`
+    }).catch(console.error)
 }
 
 
@@ -2649,7 +2568,7 @@ const textFieldOutlinedWithoutLabel = (attr) => {
 const textAreaOutlined = (attr) => {
 
     const label = createElement('label', {
-        className: 'mdc-text-field mdc-text-field--outlined mdc-text-field--textarea'
+        className: `mdc-text-field mdc-text-field--outlined mdc-text-field--textarea ${attr.value ? 'mdc-text-field--label-floating' :''}`
     })
     if (attr.value) {
         label.classList.add('mdc-text-field--label-floating')

@@ -35,7 +35,7 @@
 
   <!-- End Google Tag Manager (noscript) -->
   <header class="mdc-top-app-bar mdc-top-app-bar--fixed" data-mdc-auto-init="MDCTopAppBar" style="z-index: 7;">
-  
+
     <div class="mdc-top-app-bar__row content-max-width">
       <section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-start header-start--join">
 
@@ -49,7 +49,7 @@
         <span class="mdc-top-app-bar__title">
           <strong>GROWTH</strong>FILE
         </span>
-   
+
       </section>
       <section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-end" role="toolbar">
 
@@ -59,7 +59,7 @@
 
           <a class="no-underline mdc-theme--on-primary" href="tel:+918595422858"> +91 85954 22858</a>
         </span>
- 
+
       </section>
     </div>
   </header>
@@ -101,17 +101,14 @@
     <div id='snackbar-container'></div>
     <div class="mdc-dialog" id="wallet-dialog">
       <div class="mdc-dialog__container">
-        <div class="mdc-dialog__surface"
-          role="alertdialog"
-          aria-modal="true"
-          aria-labelledby="my-dialog-title"
+        <div class="mdc-dialog__surface" role="alertdialog" aria-modal="true" aria-labelledby="my-dialog-title"
           aria-describedby="my-dialog-content">
-          <h2 class="mdc-dialog__title" id="my-dialog-title" >
-            Choose wallet 
+          <h2 class="mdc-dialog__title" id="my-dialog-title">
+            Choose wallet
           </h2>
           <div class="mdc-dialog__content" id="my-dialog-content">
             <ul class="mdc-list mdc-list--avatar-list" role="radiogroup" id="wallet-list" data-mdc-auto-init="MDCList">
-           
+
             </ul>
           </div>
           <div class="mdc-dialog__actions">
@@ -126,17 +123,18 @@
     </div>
     <div class="mdc-dialog" id="netbanking-dialog">
       <div class="mdc-dialog__container">
-        <div class="mdc-dialog__surface"
-          role="alertdialog"
-          aria-modal="true"
-          aria-labelledby="my-dialog-title"
+        <div class="mdc-dialog__surface" role="alertdialog" aria-modal="true" aria-labelledby="my-dialog-title"
           aria-describedby="my-dialog-content">
           <div class="mdc-dialog__title" id="my-dialog-title">
-            Choose bank 
-            <label class="mdc-text-field mdc-text-field--outlined mdc-text-field--no-label  mdc-text-field--with-leading-icon full-width" data-mdc-auto-init="MDCTextField">
-              <i class="material-icons mdc-text-field__icon mdc-text-field__icon--leading" tabindex="0" role="button">search</i>
-  
-              <input class="mdc-text-field__input" type="text" aria-label="Label" placeholder="Search bank" id="search-bank">
+            Choose bank
+            <label
+              class="mdc-text-field mdc-text-field--outlined mdc-text-field--no-label  mdc-text-field--with-leading-icon full-width"
+              data-mdc-auto-init="MDCTextField">
+              <i class="material-icons mdc-text-field__icon mdc-text-field__icon--leading" tabindex="0"
+                role="button">search</i>
+
+              <input class="mdc-text-field__input" type="text" aria-label="Label" placeholder="Search bank"
+                id="search-bank">
               <span class="mdc-notched-outline">
                 <span class="mdc-notched-outline__leading"></span>
                 <span class="mdc-notched-outline__trailing"></span>
@@ -145,8 +143,8 @@
           </div>
           <div class="mdc-dialog__content" id="my-dialog-content">
             <ul class="mdc-list mdc-list--avatar-list" role="radiogroup" id="bank-list" data-mdc-auto-init="MDCList">
-            
-              
+
+
             </ul>
           </div>
           <div class="mdc-dialog__actions">
@@ -161,66 +159,116 @@
     </div>
     <div class="mdc-dialog" id="payment-dialog">
       <div class="mdc-dialog__container">
-        <div class="mdc-dialog__surface"
-          role="alertdialog"
-          aria-modal="true"
-          aria-labelledby="my-dialog-title"
+        <div class="mdc-dialog__surface" role="alertdialog" aria-modal="true" aria-labelledby="my-dialog-title"
           aria-describedby="my-dialog-content">
           <div class="mdc-dialog__title mdc-typography--headline5 bold" id="payment-dialog-title">
 
           </div>
           <div class="mdc-dialog__content" id="my-dialog-content">
-              <div class="mdc-data-table full-width" data-mdc-auto-init="MDCDataTable">
-                <div class="mdc-data-table__table-container">
-                  <table class="mdc-data-table__table" aria-label="Transaction table">
-                    <thead>
-                      <tr class="mdc-data-table__header-row">
-                      </tr>
-                    </thead>
-                    <tbody class="mdc-data-table__content">
-                      <tr class="mdc-data-table__row">
-                        <th class="mdc-data-table__cell" scope="row" >Transaction status</th>
-                        <td class="mdc-data-table__cell" id="txn-status"></td>
-                       
-                      </tr>
-                      <tr class="mdc-data-table__row">
-                        <th class="mdc-data-table__cell" scope="row">Order ID</th>
-                        <th class="mdc-data-table__cell" scope="row" id="txn-order-id"></th>
-                      </tr>
-                      <tr class="mdc-data-table__row">
-                        <th class="mdc-data-table__cell" scope="row">Amount</th>
-                        <td class="mdc-data-table__cell" id="txn-amount"></td>
-                      
-                      </tr>
-                      <tr class="mdc-data-table__row">
-                        <th class="mdc-data-table__cell" scope="row" >Reference Id</th>
-                        <td class="mdc-data-table__cell" id="txn-ref-id"></td>
-                      </tr>
-                      <tr class="mdc-data-table__row">
-                        <th class="mdc-data-table__cell" scope="row" >Payment mode</th>
-                        <td class="mdc-data-table__cell" id="txn-mode" ></td>
-                      </tr>
-                      <tr class="mdc-data-table__row">
-                        <th class="mdc-data-table__cell" scope="row" >Transaction message</th>
-                        <td class="mdc-data-table__cell" id="txn-msg" ></td>
-                      </tr>
-                      <tr class="mdc-data-table__row">
-                        <th class="mdc-data-table__cell" scope="row" >Time</th>
-                        <td class="mdc-data-table__cell" id="txn-time"></td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
+            <div class="mdc-data-table full-width" data-mdc-auto-init="MDCDataTable">
+              <div class="mdc-data-table__table-container">
+                <table class="mdc-data-table__table" aria-label="Transaction table">
+                  <thead>
+                    <tr class="mdc-data-table__header-row">
+                    </tr>
+                  </thead>
+                  <tbody class="mdc-data-table__content">
+                    <tr class="mdc-data-table__row">
+                      <th class="mdc-data-table__cell" scope="row">Transaction status</th>
+                      <td class="mdc-data-table__cell" id="txn-status"></td>
+
+                    </tr>
+                    <tr class="mdc-data-table__row">
+                      <th class="mdc-data-table__cell" scope="row">Order ID</th>
+                      <th class="mdc-data-table__cell" scope="row" id="txn-order-id"></th>
+                    </tr>
+                    <tr class="mdc-data-table__row">
+                      <th class="mdc-data-table__cell" scope="row">Amount</th>
+                      <td class="mdc-data-table__cell" id="txn-amount"></td>
+
+                    </tr>
+                    <tr class="mdc-data-table__row">
+                      <th class="mdc-data-table__cell" scope="row">Reference Id</th>
+                      <td class="mdc-data-table__cell" id="txn-ref-id"></td>
+                    </tr>
+                    <tr class="mdc-data-table__row">
+                      <th class="mdc-data-table__cell" scope="row">Payment mode</th>
+                      <td class="mdc-data-table__cell" id="txn-mode"></td>
+                    </tr>
+                    <tr class="mdc-data-table__row">
+                      <th class="mdc-data-table__cell" scope="row">Transaction message</th>
+                      <td class="mdc-data-table__cell" id="txn-msg"></td>
+                    </tr>
+                    <tr class="mdc-data-table__row">
+                      <th class="mdc-data-table__cell" scope="row">Time</th>
+                      <td class="mdc-data-table__cell" id="txn-time"></td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
-              
+            </div>
+
             <div class="payment-status--btn mt-20">
-              <button type="button" class="mdc-button mdc-dialog__button mdc-button--large" data-mdc-dialog-action="close" id="payment-next-btn" data-mdc-auto-init="MDCRipple">
+              <button type="button" class="mdc-button mdc-dialog__button mdc-button--large"
+                data-mdc-dialog-action="close" id="payment-next-btn" data-mdc-auto-init="MDCRipple">
                 <div class="mdc-button__ripple"></div>
                 <span class="mdc-button__label">Continue</span>
               </button>
             </div>
           </div>
-         
+
+        </div>
+      </div>
+      <div class="mdc-dialog__scrim"></div>
+    </div>
+    <div class="mdc-dialog" id="ask-gst-dialog">
+      <div class="mdc-dialog__container">
+        <div class="mdc-dialog__surface" role="alertdialog" aria-modal="true" aria-labelledby="my-dialog-title"
+          aria-describedby="my-dialog-content">
+          <div class="mdc-dialog__title mdc-typography--headline5 bold">
+
+          </div>
+          <div class="mdc-dialog__content">
+            <div class="gst-dialog-cont">
+              <div class="gst-image">
+                <svg width="295" height="218" viewBox="0 0 295 218" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M133.373 190.092C88.3067 190.092 51.7734 153.559 51.7734 108.493C51.7734 63.4265 88.3067 26.8936 133.373 26.8936C178.439 26.8936 214.972 63.4265 214.972 108.493C214.972 153.559 178.439 190.092 133.373 190.092Z" fill="#FFDBDC"/>
+                  <path d="M89.6654 64.0853L212.038 64.1157C217.158 64.1168 221.308 68.2666 221.309 73.3859L221.336 143.825C221.337 148.946 217.187 153.099 212.066 153.1H212.061L89.6881 153.065C84.5687 153.064 80.4189 148.914 80.4175 143.795L80.3906 73.3559C80.3892 68.2348 84.5397 64.0825 89.6608 64.0811H89.6654V64.0853Z" fill="white"/>
+                  <path d="M189.809 130.846H147.154C145.106 130.846 143.445 132.506 143.445 134.555C143.445 136.603 145.106 138.264 147.154 138.264H189.809C191.857 138.264 193.517 136.603 193.517 134.555C193.517 132.506 191.857 130.846 189.809 130.846Z" fill="#ECECEC"/>
+                  <path d="M147.154 104.882H206.499C208.548 104.882 210.209 103.221 210.209 101.173C210.209 99.1242 208.548 97.4639 206.499 97.4639H147.154C145.106 97.4639 143.445 99.1242 143.445 101.173C143.445 103.221 145.106 104.882 147.154 104.882Z" fill="#ECECEC"/>
+                  <path d="M147.154 88.1916H169.409C171.457 88.1916 173.118 86.5309 173.118 84.4825C173.118 82.4341 171.457 80.7734 169.409 80.7734H147.154C145.106 80.7734 143.445 82.4341 143.445 84.4825C143.445 86.5309 145.106 88.1916 147.154 88.1916Z" fill="#ECECEC"/>
+                  <path d="M206.5 114.155H147.155C145.106 114.155 143.445 115.816 143.445 117.864C143.445 119.913 145.106 121.573 147.155 121.573H206.5C208.548 121.573 210.209 119.913 210.209 117.864C210.209 115.816 208.548 114.155 206.5 114.155Z" fill="#ECECEC"/>
+                  <path d="M111.916 77.0645C101.68 77.0645 93.3711 85.3729 93.3711 95.6098C93.3711 105.847 101.68 114.155 111.916 114.155C122.153 114.155 130.462 105.847 130.462 95.6098C130.462 85.3729 122.153 77.0645 111.916 77.0645Z" fill="#FFDBDC"/>
+                  <path d="M111.917 93.6062C114.91 93.6062 117.326 91.2922 117.326 88.4257C117.326 85.5591 114.91 83.2451 111.917 83.2451C108.924 83.2451 106.508 85.5591 106.508 88.4257C106.508 91.2922 108.924 93.6062 111.917 93.6062Z" fill="#F80000"/>
+                  <path d="M111.916 96.8877C108.31 96.8877 101.152 98.7702 101.098 102.207C103.424 105.557 107.408 107.767 111.916 107.767C116.424 107.767 120.408 105.557 122.734 102.207C122.68 98.7702 115.504 96.8877 111.916 96.8877Z" fill="#F80000"/>
+                  <path d="M0 217.182H295V0H0V217.182ZM133.242 190.19C88.176 190.19 51.6427 153.657 51.6427 108.591C51.6427 63.5247 88.176 26.9914 133.242 26.9914C178.308 26.9914 214.842 63.5247 214.842 108.591C214.842 153.657 178.308 190.19 133.242 190.19Z" fill="white"/>
+                  <path d="M170.294 129.785H192.549C195.621 129.785 198.112 132.276 198.112 135.349C198.112 138.422 195.621 140.912 192.549 140.912H170.294C167.221 140.912 164.73 138.422 164.73 135.349C164.73 132.276 167.221 129.785 170.294 129.785Z" fill="#FF4040"/>
+                  <path d="M193.956 153.584C181.054 153.584 170.735 143.265 170.735 130.362C170.735 117.459 181.054 107.14 193.956 107.14C206.859 107.14 217.178 117.459 217.178 130.362C217.178 143.26 206.854 153.584 193.956 153.584ZM248.526 177.706L221.696 150.872C225.822 145.453 228.145 138.487 228.145 131.003C228.145 112.427 213.181 97.4639 194.604 97.4639C176.027 97.4639 161.059 112.432 161.059 131.008C161.059 149.585 176.022 164.548 194.599 164.548C202.083 164.548 208.788 162.226 214.468 158.099L241.304 184.933C242.334 185.964 243.626 186.482 244.917 186.482C246.209 186.482 247.496 185.964 248.531 184.933C250.592 182.868 250.592 179.772 248.526 177.706Z" fill="#F80000"/>
+                  </svg>                  
+              </div>
+              <div class="ask-gst">
+                <p>In order to proceed, please enter your company's GSTIN.</p>
+                <div>GSTIN helps us to generate accurate E-invoices for you</div>
+                <label class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
+                  <span class="mdc-notched-outline">
+                    <span class="mdc-notched-outline__leading"></span>
+                    <span class="mdc-notched-outline__notch">
+                      <span class="mdc-floating-label" id="my-label-id">GSTIN Number</span>
+                    </span>
+                    <span class="mdc-notched-outline__trailing"></span>
+                  </span>
+                  <input type="text" class="mdc-text-field__input" aria-labelledby="my-label-id">
+                </label>
+              </div>
+            </div>
+            <div class="gst-next mt-20">
+              <button type="button" class="mdc-button mdc-dialog__button mdc-button--large"
+                data-mdc-auto-init="MDCRipple" id="ask-gst-btn">
+                <div class="mdc-button__ripple"></div>
+                <span class="mdc-button__label">Next</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
       <div class="mdc-dialog__scrim"></div>
@@ -255,4 +303,5 @@
   <script src="https://www.cashfree.com/assets/cashfree.sdk.v1.2.js" type="text/javascript"></script>
 
 </body>
+
 </html>
