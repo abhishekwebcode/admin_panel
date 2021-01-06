@@ -789,11 +789,16 @@ var handleAuthAnalytics = function handleAuthAnalytics(authResult, tokenResult) 
  */
 
 
-var getImageBase64 = function getImageBase64(evt, compressionFactor) {
+var getImageBase64 = function getImageBase64(evt, compressionFactor, maxSize) {
   return new Promise(function (resolve, reject) {
     var files = evt.target.files;
-    if (!files.length) return;
+    if (!files.length) return reject({
+      message: "file-not-exist"
+    });
     var file = files[0];
+    if (maxSize && file.size > maxSize) return reject({
+      message: "file-size-too-large"
+    });
     var fileReader = new FileReader();
 
     fileReader.onload = function (fileLoadEvt) {
@@ -835,6 +840,7 @@ var setHelperInvalid = function setHelperInvalid(field, message) {
   field.foundation.adapter.shakeLabel(true);
 
   if (message) {
+    console.log(field);
     field.helperTextContent = message;
   }
 };

@@ -39,10 +39,10 @@ var putActivity = function putActivity(activity) {
 var getOfficeActivity = function getOfficeActivity(officeId) {
   return new Promise(function (resolve, reject) {
     getActivity(officeId).then(function (record) {
-      if (record && officeHasMembership(record.schedule) && !isOfficeMembershipExpired(record.schedule)) {
-        return resolve(record);
-      }
-
+      // if()
+      // if (record && officeHasMembership(record.schedule) && !isOfficeMembershipExpired(record.schedule)) {
+      //     return resolve(record);
+      // }
       http('GET', "".concat(appKeys.getBaseUrl(), "/api/office/").concat(officeId, "/activity/").concat(officeId, "/")).then(function (officeActivity) {
         putActivity(officeActivity).then(resolve);
       }).catch(reject);
@@ -66,7 +66,7 @@ var updateCompanyProfile = function updateCompanyProfile(activity) {
   }
 
   companyName.textContent = activity.attachment['Name'].value;
-  companyAddress.textContent = activity.attachment['Registered Office Address'].value;
+  companyAddress.textContent = activity.attachment['Registered Office Address'] ? activity.attachment['Registered Office Address'].value : '';
   companyDescription.textContent = activity.attachment['Description'].value;
   companyCategory.textContent = activity.attachment['Category'] ? activity.attachment['Category'].value : '';
 };

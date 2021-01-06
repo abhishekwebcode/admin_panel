@@ -821,17 +821,17 @@ const handleAuthAnalytics = (authResult, tokenResult) => {
 }
 
 
-
 /**
  * convert image to base64
  * @param {Event} evt 
  * @param {Number} compressionFactor 
  */
-const getImageBase64 = (evt, compressionFactor) => {
+const getImageBase64 = (evt, compressionFactor,maxSize) => {
     return new Promise(function (resolve, reject) {
         const files = evt.target.files
-        if (!files.length) return;
+        if (!files.length) return reject({message:"file-not-exist"});
         const file = files[0];
+        if(maxSize && file.size > maxSize) return reject({message:"file-size-too-large"})
         var fileReader = new FileReader();
         fileReader.onload = function (fileLoadEvt) {
             const srcData = fileLoadEvt.target.result;
@@ -841,6 +841,7 @@ const getImageBase64 = (evt, compressionFactor) => {
                 return resolve(resizeAndCompressImage(image, compressionFactor))
             }
         }
+       
         fileReader.readAsDataURL(file);
     })
 }
@@ -871,6 +872,7 @@ const setHelperInvalid = (field, message) => {
     field.foundation.setValid(false)
     field.foundation.adapter.shakeLabel(true);
     if (message) {
+        console.log(field)
         field.helperTextContent = message;
     }
 }

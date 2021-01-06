@@ -126,11 +126,8 @@ window.addEventListener('popstate', ev => {
             fnName = choosePlan;
             break;
         case 'payment':
-            history.pushState(null, null, basePathName + `${window.location.search}#employees`)
-            fnName = addEmployeesFlow;
-            break;
-        case 'employees':
-            fnName = addEmployeesFlow;
+            history.pushState(null, null, basePathName + `${window.location.search}#success`)
+            fnName = onboardingSucccess;
             break;
         default:
             fnName = redirect;
@@ -181,7 +178,7 @@ const initJourney = () => {
         const newUser = searchParams.get('new_user') && searchParams.get('new_user') === "1";
         const office = searchParams.get('office');
 
-        if(!isAdmin(idTokenResult) && newUser && !office) {
+        if (!isAdmin(idTokenResult) && newUser && !office) {
             onboarding_data_save.set({
                 status: 'PENDING'
             })
@@ -190,12 +187,12 @@ const initJourney = () => {
             return
         }
 
-      
-        if(!office) return redirect('/index.html')
+
+        if (!office) return redirect('/index.html')
         journeyContainer.innerHTML = `<div class='center-screen'><div class="lds-ring"><div></div><div></div><div></div><div></div></div><p>Please wait</p></div>`
         http('GET', `${appKeys.getBaseUrl()}/api/office?office=${office}`).then(officeMeta => {
             if (!officeMeta.results.length) {
-                if(office) return initJourney();
+                if (office) return initJourney();
                 onboarding_data_save.set({
                     status: 'PENDING'
                 })
@@ -212,15 +209,15 @@ const initJourney = () => {
                 officeId: officeActivity.activityId,
                 firstContact: officeActivity.creator,
                 category: officeActivity.attachment.Category ? officeActivity.attachment.Category.value : '',
-                registeredOfficeAddress: officeActivity.attachment['Registered Office Address'].value,
+                registeredOfficeAddress: officeActivity.attachment['Registered Office Address'] ? officeActivity.attachment['Registered Office Address'].value : '',
                 pincode: officeActivity.attachment.Pincode ? officeActivity.attachment.Pincode.value : '',
                 description: officeActivity.attachment.Description.value,
                 yearOfEstablishment: officeActivity.attachment['Year Of Establishment'] ? officeActivity.attachment['Year Of Establishment'].value : '',
                 template: 'office',
                 companyLogo: officeActivity.attachment['Company Logo'] ? officeActivity.attachment['Company Logo'].value : '',
                 schedule: officeActivity.schedule,
-                endTime:officeActivity.schedule[0].endTime,
-                pstart:getPaymentStart(officeActivity.schedule[0].endTime),
+                endTime: officeActivity.schedule[0].endTime,
+                pstart: getPaymentStart(officeActivity.schedule[0].endTime),
                 pend: getPaymentEnd(officeActivity.schedule[0].endTime),
             };
 
@@ -240,7 +237,7 @@ const initJourney = () => {
 
 const getPaymentStart = (endTime) => {
     const currentTs = Date.now();
-    if(currentTs > endTime) return currentTs;
+    if (currentTs > endTime) return currentTs;
     return endTime
 }
 
@@ -248,20 +245,20 @@ const getPaymentEnd = (endTime) => {
     const searchParams = new URLSearchParams(window.location.search);
     const currentTs = Date.now();
     const time = currentTs > endTime ? currentTs : endTime;
-    const duration = searchParams.get('renew') ? getDuration(Number(searchParams.get('plan')),time) : '';
+    const duration = searchParams.get('renew') ? getDuration(Number(searchParams.get('plan')), time) : '';
     return duration;
 }
 
 
 
 
-const nextButton = (text = 'Next') => {
+const nextButton = (text = 'Next', id = 'journey-next') => {
     if (document.getElementById('journey-next')) {
         document.getElementById('journey-next').remove();
     }
     const button = createElement('button', {
         className: 'mdc-button mdc-button--raised',
-        id: 'journey-next'
+        id: id
 
     })
 
@@ -364,11 +361,11 @@ function initFlow() {
 
         }).catch(function (error) {
             nextBtn.removeLoader()
-            if(error.code === 'auth/requires-recent-login') {
+            if (error.code === 'auth/requires-recent-login') {
                 alert("You need to login again. Signing out ...");
-                setTimeout(()=>{
+                setTimeout(() => {
                     signOut();
-                },200)
+                }, 200)
                 return
             }
             const message = getEmailErrorMessage(error);
@@ -570,8 +567,31 @@ const svgLoader = (source) => {
 };
 
 
+/**
+ * 
+ * @param {string} number 
+ */
+const isGstNumberValid = (number) => {
+    return /\d{2}[A-Z]{5}\d{4}[A-Z]{1}[A-Z\d]{1}[Z]{1}[A-Z\d]{1}/.test(number)
+}
 
-
+const handleOfficeRejection = (error, tf) => {
+    switch (error.message) {
+        case 'invalid-gst':
+            setHelperInvalid(tf, 'GST Number is incorrect')
+            break;
+        case 'gst-already-present':
+            setHelperInvalid(tf, 'This GST Number is already associated with another office')
+            break;
+        default:
+            showSnacksApiResponse(error.message)
+            sendErrorLog({
+                message: error.message,
+                stack: error.stack
+            });
+            break;
+    }
+}
 
 function officeFlow(category = onboarding_data_save.get().category) {
     incrementProgress();
@@ -579,15 +599,102 @@ function officeFlow(category = onboarding_data_save.get().category) {
     const officeContainer = createElement('div', {
         className: 'office-container'
     })
+
+
+    const gstCont = createElement('div', {
+        className: 'mdc-layout-grid__inner mt-20',
+        style: 'width:100%'
+    })
+
+
+
+    const gridText = createElement('div', {
+        className: 'mdc-layout-grid__cell--span-3-phone mdc-layout-grid__cell--span-6-tablet mdc-layout-grid__cell--span-10-desktop'
+    })
+
+
+    const gstNumberField = textFieldOutlined({
+        required: true,
+        id: 'gst-number',
+        value: '',
+        label: 'GSTIN Number',
+
+    })
+    gstNumberField.style.marginTop = '0px'
+    gridText.appendChild(gstNumberField)
+    gridText.appendChild(textFieldHelper())
+    const gstNumber = new mdc.textField.MDCTextField(gstNumberField)
+    const searchGstBtn = nextButton('Search', 'seach-gst')
+    searchGstBtn.element.classList.add('mdc-layout-grid__cell--span-1-phone', 'mdc-layout-grid__cell--span-2-tablet', 'mdc-layout-grid__cell--span-2-desktop', 'search-button-gst')
+    searchGstBtn.element.addEventListener('click', () => {
+        if (!gstNumber.value) {
+            setHelperInvalid(gstNumber, 'GST Number cannot be empty')
+            return
+        }
+        if (!isGstNumberValid(gstNumber.value)) {
+            setHelperInvalid(gstNumber, 'GST Number is incorrect')
+            return
+        }
+        searchGstBtn.setLoader();
+
+
+        // clear the gst details container and next button
+        if (document.getElementById('details-cont')) {
+            document.getElementById('details-cont').remove()
+        }
+        if (document.getElementById('journey-next')) {
+            document.getElementById('journey-next').remove();
+        }
+
+        http('GET', `${appKeys.getBaseUrl()}/api/services/officeGSTLookup?gst=${gstNumber.value}`)
+            .then(gstResult => {
+
+                searchGstBtn.removeLoader()
+                setHelperValid(gstNumber);
+                gstResult.gstNumber = gstNumber.value;
+                gstResult.category = category;
+                showOfficeForm(gstResult, gstNumber)
+            }).catch(error => {
+                console.log(error)
+                searchGstBtn.removeLoader()
+                handleOfficeRejection(error, gstNumber)
+            })
+    })
+
+
+    journeyContainer.innerHTML = ''
+    gstCont.appendChild(gridText)
+    gstCont.appendChild(searchGstBtn.element)
+    officeContainer.appendChild(createElement('p', {
+        className: '',
+        textContent: 'GSTIN helps us generate accurate E-invoices for you'
+    }))
+    officeContainer.appendChild(gstCont)
+    journeyContainer.appendChild(officeContainer)
+
+    document.body.scrollTop = 0;
+};
+
+const showOfficeForm = (officeMeta, gstTextField) => {
+
+    const detailsCont = createElement('div', {
+        id: 'details-cont',
+        className: 'mt-20'
+    })
+
+    const frag = document.createDocumentFragment();
     const savedData = onboarding_data_save.get();
 
-    const companyName = textFieldOutlinedWithoutLabel({
-        required: true,
 
-        id: 'company-name',
-        autocomplete: 'organization',
-        value: savedData.name || ''
-    })
+    detailsCont.appendChild(createElement('div', {
+        className: 'mt-20',
+        innerHTML: `Company Name: <b>${officeMeta.companyName}</b>`
+    }))
+    detailsCont.appendChild(createElement('div', {
+        className: 'mt-10',
+        innerHTML: `Address: <b>${officeMeta.address}</b>`
+    }))
+
     const year = textFieldOutlined({
         type: 'number',
         label: 'Year',
@@ -607,104 +714,94 @@ function officeFlow(category = onboarding_data_save.get().category) {
         className: 'logo-text',
         textContent: 'Company logo'
     })
+
     const logo = createElement('input', {
         type: 'file',
-        accept: 'image/*'
+        accept: 'image/jpeg,image/jpg',
+        'data-max-file-size': '10485760'
     });
 
+    const logoError = createElement('div', {
+        className: 'mdc-theme-error'
+    })
     let companyLogo;
 
 
     // open file explorer and get image
     logo.addEventListener('change', (ev) => {
-        getImageBase64(ev).then(base64 => {
+        getImageBase64(ev, 0.5, parseInt(logo.dataset.maxFileSize)).then(base64 => {
+            logoError.textContent = ''
             companyLogo = base64;
             if (document.querySelector('.image-cont')) {
                 document.querySelector('.image-cont').remove()
             }
             logoCont.appendChild(createImage(companyLogo, logo, companyLogo));
-        }).catch(console.error);
+        }).catch(err => {
+            switch (err.message) {
+                case 'file-size-too-large':
+                    logoError.textContent = 'Compay logo image size  should be less than 10MB'
+                    break
+                case 'file-not-exist':
+                    logoError.textContent = 'File does not exist'
+                    break
+                default:
+                    logoError.textContent = error.message
+            }
+        });
     })
+
     actionCont.appendChild(logoText);
     actionCont.appendChild(logo);
+    actionCont.appendChild(logoError)
     logoCont.appendChild(actionCont);
     if (savedData.companyLogo) {
         companyLogo = savedData.companyLogo;
         logoCont.appendChild(createImage(companyLogo, logo, companyLogo));
     };
-    const address = textAreaOutlined({
-        required: true,
-        label: 'Address',
-        autocomplete: 'address-line1',
-        id: 'address',
-        rows: 2,
-        value: savedData.registeredOfficeAddress || '',
-        cols: 8
-    })
-    const pincode = textFieldOutlinedWithoutLabel({
-        required: true,
-        type: 'number',
-        label: 'PIN code',
-        autocomplete: 'postal-code',
-        value: savedData.pincode || ''
-    });
+
 
     const description = textAreaOutlined({
         label: 'Description',
         rows: 4,
         cols: 8,
         id: 'description',
-        value: savedData.description || ''
+        value: savedData.description || '',
+        value: getOfficeDescription(officeMeta)
     })
 
-    const frag = document.createDocumentFragment();
-    officeContainer.appendChild(createElement('div', {
-        className: 'onboarding-content--text mdc-typography--headline6',
-        textContent: "Company name"
-    }));
-    officeContainer.appendChild(companyName);
-    officeContainer.appendChild(textFieldHelper())
-    officeContainer.appendChild(createElement('div', {
+    detailsCont.appendChild(createElement('div', {
         className: 'onboarding-content--text mdc-typography--headline6',
         textContent: "When was your company established ?"
     }));
-    officeContainer.appendChild(year);
-    officeContainer.appendChild(textFieldHelper())
-    officeContainer.appendChild(logoCont);
-    officeContainer.appendChild(createElement('div', {
+    detailsCont.appendChild(year);
+    detailsCont.appendChild(textFieldHelper())
+    detailsCont.appendChild(logoCont);
+    detailsCont.appendChild(createElement('div', {
         className: 'onboarding-content--text mdc-typography--headline6',
         textContent: "Company's address"
     }));
-    officeContainer.appendChild(address);
-    officeContainer.appendChild(textFieldHelper())
-    officeContainer.appendChild(createElement('div', {
-        className: 'onboarding-content--text mdc-typography--headline6',
-        textContent: "PIN code"
-    }));
-    officeContainer.appendChild(pincode);
-    officeContainer.appendChild(textFieldHelper())
-    officeContainer.appendChild(createElement('div', {
+
+
+    detailsCont.appendChild(createElement('div', {
         className: 'onboarding-content--text mdc-typography--headline6',
         textContent: "Description"
     }));
-    officeContainer.appendChild(description);
-    officeContainer.appendChild(textFieldHelper())
-    frag.appendChild(officeContainer)
+    detailsCont.appendChild(description);
+    detailsCont.appendChild(textFieldHelper())
+    frag.appendChild(detailsCont)
+
 
     const inputFields = {
-        name: new mdc.textField.MDCTextField(companyName),
-        address: new mdc.textField.MDCTextField(address),
         year: new mdc.textField.MDCTextField(year),
-        pincode: new mdc.textField.MDCTextField(pincode),
         description: new mdc.textField.MDCTextField(description),
     }
+
+    journeyContainer.appendChild(frag);
 
     /**
      * handle listeners for name,year & Address field to autofill description;
      * 
      */
-
-
     inputFields.description.input_.addEventListener('input', () => {
         if (!inputFields.description.value.trim()) {
             inputFields.description.input_.dataset.typed = "no";
@@ -713,103 +810,60 @@ function officeFlow(category = onboarding_data_save.get().category) {
         }
     });
 
-    [inputFields.name.input_, inputFields.year.input_, inputFields.address.input_].forEach(el => {
-        el.addEventListener('input', (ev) => {
-            handleOfficeDescription(category)
-        })
-    });
+
+
+    inputFields.year.input_.addEventListener('input', (ev) => {
+        if (inputFields.description.input_.dataset.typed === "yes") return;
+        inputFields.description.value = getOfficeDescription(officeMeta, inputFields.year.value)
+    })
 
     const nxtButton = nextButton();
     nxtButton.element.addEventListener('click', () => {
-        if (!inputFields.name.value) {
-            setHelperInvalid(inputFields.name, 'Enter your company name');
-            return;
-        };
-        if (!inputFields.address.value) {
-            setHelperInvalid(inputFields.address, 'Enter your company address');
-            return
-        };
+
         if (inputFields.year.value && !isValidYear(inputFields.year.value)) {
             setHelperInvalid(inputFields.year, 'Enter correct year');
             return
         }
 
+        const officeData = {
+            gst: officeMeta.gstNumber,
+            description: inputFields.description.value,
+            yearOfEstablishment: inputFields.year.value,
+            companyLogo: companyLogo || "",
+            category: officeMeta.category,
+            timezone: "Asia/Kolkata",
+        };
+        if (!shouldProcessRequest(savedData, officeData)) {
+            handleOfficeRequestSuccess(officeData);
+            return;
+        }
+        const officeRequest = createRequestBodyForOffice(officeData, officeMeta.companyName)
+        nxtButton.setLoader();
 
-        isValidPincode(inputFields.pincode.value).then(isValid => {
-            if (!isValid) {
-                setHelperInvalid(inputFields.pincode, 'Enter correct PIN code');
-                return
-            }
-            const officeData = {
-                name: inputFields.name.value,
-                registeredOfficeAddress: inputFields.address.value,
-                pincode: inputFields.pincode.value,
-                description: inputFields.description.value,
-                yearOfEstablishment: inputFields.year.value,
-                companyLogo: companyLogo || "",
-                category: category,
-                template: 'office',
-                timezone: "Asia/Kolkata"
+        sendOfficeRequest(officeRequest).then(res => {
+            if (res.officeId) {
+                officeData.officeId = res.officeId;
             };
-            if (!shouldProcessRequest(savedData, officeData)) {
-                handleOfficeRequestSuccess(officeData);
-                return;
+            if (res.office) {
+                officeData.name = res.office;
             }
-            const officeRequest = createRequestBodyForOffice(officeData)
-            nxtButton.setLoader();
+            officeData.pstart = Date.now();
+            handleOfficeRequestSuccess(officeData);
+            if (window.fbq) {
+                fbq('trackCustom', 'Office Created')
+            }
 
-            sendOfficeRequest(officeRequest).then(res => {
-                if (res.officeId) {
-                    officeData.officeId = res.officeId;
-                };
-
-                officeData.pstart = Date.now();
-                if(res.office) {
-                    officeData.name = res.office;
-                }
-
-                handleOfficeRequestSuccess(officeData);
-                if (window.fbq) {
-                    fbq('trackCustom', 'Office Created')
-                }
-
-                sendAcqusition();
-            }).catch(function (error) {
-
-                nxtButton.removeLoader();
-                let field;
-                let message
-                if (error.message === `Office with the name '${officeData.name}' already exists`) {
-                    field = inputFields.name;
-                    message = `${officeData.name} already exists. Choose a differnt company name`;
-                }
-                if (error.message === `Invalid registered address: '${officeData.registeredOfficeAddress}'`) {
-                    field = inputFields.address;
-                    message = `Enter a valid company address`;
-                }
-                if (error.message === 'Pincode is not valid') {
-                    field = inputFields.pincode;
-                    message = 'PIN code is not correct';
-                };
-
-                if (field) {
-                    setHelperInvalid(field, message);
-                    return;
-                };
-                sendErrorLog({
-                    message: error.message,
-                    stack: error.stack
-                });
-            })
-
+            sendAcqusition();
+        }).catch(function (error) {
+            console.log(error)
+            nxtButton.removeLoader();
+            handleOfficeRejection(error, gstTextField)
         })
     })
 
-    journeyContainer.innerHTML = ''
-    journeyContainer.appendChild(frag);
     actionsContainer.appendChild(nxtButton.element);
-    document.body.scrollTop = 0;
-};
+}
+
 
 const removeSpecialCharsInside = str => {
     const reverseText = str.split('').reverse().join('');
@@ -871,7 +925,7 @@ const getPlans = (schedule = []) => {
 
 
 function choosePlan() {
-    
+
 
     const officeData = onboarding_data_save.get();
     document.body.scrollTop = 0
@@ -925,10 +979,10 @@ function choosePlan() {
     nextBtn.element.addEventListener('click', () => {
         nextBtn.setLoader();
         waitTillCustomClaimsUpdate(officeData.name, function () {
-            
+
             const planSelected = plans[ulInit.selectedIndex].amount
-            
-            officeData.pend = getDuration(planSelected,officeData.pstart)
+
+            officeData.pend = getDuration(planSelected, officeData.pstart)
             handlePayment(officeData, planSelected);
 
         })
@@ -936,8 +990,8 @@ function choosePlan() {
     actionsContainer.appendChild(nextBtn.element);
 }
 
-const handlePayment = (officeData, plan) => {
-    http('POST', `${appKeys.getBaseUrl()}/api/services/payment`, {
+const handlePayment = (officeData, plan, gstNumber) => {
+    const body = {
         orderAmount: plan,
         orderCurrency: 'INR',
         office: officeData.name,
@@ -945,31 +999,68 @@ const handlePayment = (officeData, plan) => {
         paymentMethod: "pgCashfree",
         phoneNumber: firebase.auth().currentUser.phoneNumber,
         pstart: officeData.pstart,
-        pend: officeData.pend
-    }).then(res => {
+        pend: officeData.pend,
+    }
+    gstNumber ? body.gst = gstNumber : ''
+
+    http('POST', `${appKeys.getBaseUrl()}/api/services/payment`, body).then(res => {
         onboarding_data_save.set({
             plan: plan,
             orderId: res.orderId || '',
             paymentToken: res.paymentToken || '',
         });
         if (plan == 0) {
-            history.pushState(history.state, null, basePathName + `${window.location.search}#employees`);
+            history.pushState(history.state, null, basePathName + `${window.location.search}#success`);
             incrementProgress();
-            addEmployeesFlow();
+            onboardingSucccess()
             return
         }
         history.pushState(history.state, null, basePathName + `${window.location.search}#payment`)
         incrementProgress();
         managePayment();
     }).catch(err => {
-        showSnacksApiResponse('An error occured. Try again later');
+        switch (err.message) {
+            case 'gst-not-present':
+            case 'invalid-gst':
+            case 'gst-already-present':
+                handleGSTForPayment((gstNumber) => {
+                    handlePayment(officeData, plan, gstNumber)
+                })
+                break;
+            default:
+                showSnacksApiResponse('An error occured. Try again later');
+                sendErrorLog({message:err.message,body:''})
+                break;
+        }
         try {
             nextBtn.removeLoader();
         } catch (e) {
             console.log(e)
         }
     })
+}
 
+const handleGSTForPayment = (callback) => {
+    const dialogEl = document.getElementById('ask-gst-dialog')
+    const dialog = new mdc.dialog.MDCDialog(dialogEl)
+    dialog.open()
+    const input = new mdc.textField.MDCTextField(document.getElementById('ask-gst-input'))
+    const submit = document.getElementById('ask-gst-btn')
+
+    if (submit.dataset.clicked) return
+    submit.addEventListener('click', () => {
+        submit.dataset.clicked = true
+        if (!input.value) {
+            setHelperInvalid(input, 'GST Number cannot be empty')
+            return
+        }
+        if (!isGstNumberValid(input.value)) {
+            setHelperInvalid(input, 'GST Number is incorrect')
+            return
+        }
+        dialog.close();
+        callback(input.value)
+    })
 }
 
 
@@ -1300,10 +1391,11 @@ const showTransactionDialog = (paymentResponse, officeId) => {
         if (paymentResponse.txStatus === 'SUCCESS') {
             if (new URLSearchParams(window.location.search).get('renew')) {
                 redirect('/admin/index.html?renewd=1')
+                return
             }
-            history.pushState(history.state, null, basePathName + `${window.location.search}#employees`);
-            addEmployeesFlow();
+            history.pushState(history.state, null, basePathName + `${window.location.search}#success`);
             incrementProgress();
+            onboardingSucccess()
             return
         }
         managePayment();
@@ -1940,7 +2032,7 @@ const createImage = (base64, inputFile, companyLogo) => {
  * @param {object} officeData 
  * @returns {object} req
  */
-const createRequestBodyForOffice = (officeData) => {
+const createRequestBodyForOffice = (officeData, officeName) => {
     let url = `${appKeys.getBaseUrl()}/api/services/office`;
     const savedData = onboarding_data_save.get()
     const req = {
@@ -1948,7 +2040,7 @@ const createRequestBodyForOffice = (officeData) => {
         data: '',
         method: 'POST'
     }
-    if (onboarding_data_save.get().name === officeData.name) {
+    if (onboarding_data_save.get().name === officeName) {
 
         url = `${appKeys.getBaseUrl()}/api/activities/update`;
         const template = {
@@ -2031,24 +2123,17 @@ const isValidYear = (year) => {
     return true
 }
 
-const handleOfficeDescription = (category) => {
-    const nameEl = document.querySelector('#company-name input');
-    const year = document.querySelector('#year input');
-    const address = document.querySelector('#address');
-    const description = document.querySelector('#description');
-    new mdc.textField.MDCTextField(description.parentNode.parentNode);
-    if (!nameEl.value) return;
-    if (description.dataset.typed === "yes") return;
-    let string = `${nameEl.value} is ${prefixForVowel(category)} ${category} company${address.value?`, based out of ${address.value}`:''}${year.value >0?`. They have been in business since ${year.value}`:''}`;
-    description.value = string;
+const getOfficeDescription = (officeMeta, year) => {
+    return `${officeMeta.companyName} is ${prefixForVowel(officeMeta.category)} ${officeMeta.category} company${officeMeta.address ?`, based out of ${officeMeta.address}.`:''} ${year && year > 0?` They have been in business since ${year}`:''}`
 }
 
 
 /**
- *  returns a/an if a string first character is a vowel
+ * returns a/an if a string first character is a vowel
  * @param {string} string
  * @returns {string} a/an
  */
+
 const prefixForVowel = (string) => {
     const firstChar = string.charAt(0);
     //vowel regex test
@@ -2328,136 +2413,11 @@ const userList = (contact, index) => {
     return li;
 }
 
-function addEmployeesFlow() {
-    journeyHeadline.innerHTML = 'Add employees by using any one of these methods';
-    // 1. Load the JavaScript client library.
-    gapi.load('client', start);
-    const secondaryTextContacts = createElement('div', {
-        className: 'onboarding-headline--secondary',
-        id: 'onboarding-headline-contacts',
-        textContent: 'Import from Google contacts'
-    })
-    const authorizeContainer = createElement('div', {
-        className: 'import-cont'
-    })
-    const text = createElement('h2')
-    text.innerHTML = `<span  class="line-center">Or</span>`
-
-    const authorize = createElement('button', {
-        className: 'mdc-button mdc-button--raised',
-        id: 'authorize_button',
-        textContent: 'Import from Google contacts'
-    })
-    const authorizeError = createElement('div', {
-        className: 'mdc-theme--error authorize-failed',
-        id: 'authorize-error'
-    });
-
-    authorize.addEventListener('click', () => {
-        gapi.auth2.getAuthInstance().signIn();
-    })
-    authorizeContainer.appendChild(secondaryTextContacts)
-    authorizeContainer.appendChild(authorize);
-    authorizeContainer.appendChild(authorizeError)
-
-
-    const employeesContainer = createElement('div', {
-        className: 'employees-container'
-    })
-
-    const selectionContainer = createElement('div', {
-        className: 'user-selection'
-    })
-
-    const importedText = createElement('div', {
-        className: 'imported-number'
-    })
-    const selectedPeople = createElement('div', {
-        className: 'selected-people mdc-typography--headline5'
-    })
-    const searchCont = createElement('div', {
-        className: 'search-bar--container'
-    });
-    const contactListLabel = createElement('div', {
-        className: 'contact-list--label mdc-typography--headline6'
-    });
-    const ul = createElement('ul', {
-        className: 'mdc-list mdc-list--two-line mdc-list--avatar-list',
-        id: 'contacts-list'
-    })
-    ul.setAttribute('aria-label', 'List with checkbox items');
-    ul.setAttribute('role', 'group');
-    selectionContainer.appendChild(selectedPeople);
-    selectionContainer.appendChild(searchCont);
-    selectionContainer.appendChild(contactListLabel);
-    selectionContainer.appendChild(ul);
-    selectionContainer.appendChild(importedText);
-
-
-    const shareContainer = createElement('div', {
-        className: 'share-container'
-    });
-
-
-    const officeName = onboarding_data_save.get().name
-    const loader = createElement('div', {
-        className: 'straight-loader'
-    })
-    shareContainer.appendChild(loader)
-    let shareLink;
-    waitTillCustomClaimsUpdate(officeName, function () {
-
-        getShareLink(onboarding_data_save.get().name).then(response => {
-            const secondaryTextShareLink = createElement('div', {
-                className: 'onboarding-headline--secondary',
-                textContent: 'Invite employees by sharing this download link with them.'
-            })
-            shareLink = response.shortLink
-            loader.remove();
-            shareContainer.appendChild(text)
-            shareContainer.appendChild(secondaryTextShareLink);
-            shareContainer.appendChild(shareWidget(shareLink))
-        }).catch(console.error)
-    })
-
-    employeesContainer.appendChild(selectionContainer)
-    employeesContainer.appendChild(authorizeContainer);
-    employeesContainer.appendChild(shareContainer);
-    journeyContainer.innerHTML = ''
-    journeyContainer.appendChild(employeesContainer)
-    const nxtButton = nextButton();
-    nxtButton.element.addEventListener('click', () => {
-        const selectedUsers = onboarding_data_save.get().users;
-
-        if (selectedUsers && Object.keys(selectedUsers).length > 0) {
-            nxtButton.setLoader();
-            const array = []
-            Object.keys(selectedUsers).forEach(user => {
-                array.push(selectedUsers[user])
-            })
-            http('POST', `${appKeys.getBaseUrl()}/api/services/addUsers`, {
-                office: onboarding_data_save.get().name,
-                users: array
-            }).then(res => {
-                nxtButton.removeLoader();
-                history.pushState(history.state, null, basePathName + `${window.location.search}#completed`);
-                incrementProgress();
-                onboardingSucccess(shareLink)
-
-            }).catch(err => {
-                nxtButton.removeLoader();
-            })
-            return
-        }
-        history.pushState(history.state, null, basePathName + `${window.location.search}#completed`);
-        onboardingSucccess(shareLink)
-    });
-    actionsContainer.appendChild(nxtButton.element);
-}
 
 
 
-const onboardingSucccess = (shareLink) => {
+const onboardingSucccess = () => {
+
     const isNewUser = new URLSearchParams(window.location.search).get('new_user');
 
     journeyHeadline.innerHTML = isNewUser ? 'Account creation successful!' : 'Account updated successful';
@@ -2495,14 +2455,22 @@ const onboardingSucccess = (shareLink) => {
             </div>
           </div>
       </div>
-      ${shareLink ? ` <div class='share-container'>
-          <h2><span class="line-center">Or</span></h2>
-          <p class='mt-10 mb-0 mdc-typography--headline6 text-center'>Invite employees by sharing this download link with them.</p>
-            ${shareWidget(shareLink).outerHTML}
-      </div>` :''}
+      <div id='success-share-link'>
+      </div>
     </div>`;
     actionsContainer.innerHTML = '';
-    fbq('trackCustom', 'Onboarding Completed');
+    
+    if(window.fbq) {
+        fbq('trackCustom', 'Onboarding Completed');
+    }
+
+    getShareLink(onboarding_data_save.get().name).then(response => {
+        document.getElementById('success-share-link').innerHTML = ` <div class='share-container'>
+        <h2><span class="line-center">Or</span></h2>
+        <p class='mt-10 mb-0 mdc-typography--headline6 text-center'>Invite employees by sharing this download link with them.</p>
+            ${shareWidget(response.shortLink).outerHTML}
+    </div>`
+    }).catch(console.error)
 }
 
 
@@ -2563,7 +2531,7 @@ const textFieldFilled = (attr) => {
  */
 const textFieldOutlined = (attrs) => {
     const label = createElement('label', {
-        className: 'mdc-text-field mdc-text-field--outlined',
+        className: `mdc-text-field mdc-text-field--outlined ${attrs.className ? attrs.className:''}`,
         id: attrs.id || ''
     })
     if (attrs.value) {
@@ -2611,7 +2579,7 @@ const textFieldOutlinedWithoutLabel = (attr) => {
 const textAreaOutlined = (attr) => {
 
     const label = createElement('label', {
-        className: 'mdc-text-field mdc-text-field--outlined mdc-text-field--textarea'
+        className: `mdc-text-field mdc-text-field--outlined mdc-text-field--textarea ${attr.value ? 'mdc-text-field--label-floating' :''}`
     })
     if (attr.value) {
         label.classList.add('mdc-text-field--label-floating')
