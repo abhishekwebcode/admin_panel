@@ -274,8 +274,7 @@
                         </div>
                         <div class="form-label mdc-typography--headline6">Company's address</div>
                         <label
-                            class="mdc-text-field mdc-text-field--outlined mdc-text-field--textarea mdc-text-field--no-label"
-                            data-mdc-auto-init="MDCTextField">
+                            class="mdc-text-field mdc-text-field--outlined mdc-text-field--textarea mdc-text-field--no-label mdc-text-field--disabled">
                             <span class="mdc-notched-outline mdc-notched-outline--upgraded">
                                 <span class="mdc-notched-outline__leading"></span>
 
@@ -283,29 +282,10 @@
                             </span>
                             <span class="mdc-text-field__resizer">
                                 <textarea class="mdc-text-field__input" rows="4" cols="100" aria-label="Label"
-                                    id="address" required autocomplete="address-line1"
-                                    placeholder="Enter your company address"></textarea>
+                                    id="address" disabled></textarea>
                             </span>
                         </label>
-                        <div class="mdc-text-field-helper-line">
-                            <div class="mdc-text-field-helper-text mdc-text-field-helper-text--validation-msg"
-                                aria-hidden="true"></div>
-                        </div>
-                        <div class="form-label mdc-typography--headline6">PIN code</div>
-                        <label class="mdc-text-field mdc-text-field--outlined mdc-text-field--no-label"
-                            data-mdc-auto-init="MDCTextField" id="pincode-mdc">
-                            <input class="mdc-text-field__input" required type="number" autocomplete="postal-code"
-                                placeholder="PIN code fo the address" id="pincode">
-                            <span class="mdc-notched-outline mdc-notched-outline--no-label">
-                                <span class="mdc-notched-outline__leading"></span>
-                                <span class="mdc-notched-outline__trailing"></span>
-                            </span>
-                        </label>
-                        <div class="mdc-text-field-helper-line">
-                            <div class="mdc-text-field-helper-text mdc-text-field-helper-text--validation-msg"
-                                aria-hidden="true"></div>
-                        </div>
-
+                    
                         <div class="form-label mdc-typography--headline6">Description</div>
                         <label
                             class="mdc-text-field mdc-text-field--outlined mdc-text-field--textarea mdc-text-field--no-label "

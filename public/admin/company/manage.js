@@ -3,7 +3,6 @@ const companyName = document.getElementById('company-name');
 const yearInput = document.getElementById('year-of-estd');
 const address = document.getElementById('address');
 const description  = document.getElementById('description');
-const pincode = document.getElementById('pincode');
 const form = document.getElementById('manage-form');
 const logoCont = document.getElementById('company-logo');
 const uploadLogo = document.getElementById('upload-logo');
@@ -27,7 +26,6 @@ const updateForm = (record) => {
     yearInput.value = record.attachment['Year Of Establishment'].value;
     address.value = record.attachment['Registered Office Address'].value;
     description.value = record.attachment['Description'].value;
-    pincode.value = record.attachment['Pincode'].value;
     const category = new mdc.select.MDCSelect(document.getElementById('category-select'));
     category.value = record.attachment['Category'].value;
     
@@ -37,7 +35,7 @@ const updateForm = (record) => {
     }
     
     uploadLogo.addEventListener('change',(ev)=>{
-        getImageBase64(ev,0.5,).then(base64 => {
+        getImageBase64(ev,0.5,parseInt(uploadLogo.dataset.maxFileSize)).then(base64 => {
             imageErrorEl.innerHTML = ''
             logoCont.classList.remove('hidden');
             logoCont.style.backgroundImage = `url("${base64}")`;
@@ -67,7 +65,6 @@ const updateForm = (record) => {
 
         const clone = JSON.parse(JSON.stringify(record))
         clone.attachment['Year Of Establishment'].value = yearInput.value;
-        clone.attachment['Registered Office Address'].value = address.value;
         clone.attachment['Description'].value = description.value;
         clone.attachment['Category'].value = category.value;
         clone.attachment['Company Logo'].value = logoCont.style.backgroundImage.substring(5, logoCont.style.backgroundImage.length -2);
@@ -75,14 +72,7 @@ const updateForm = (record) => {
             latitude:0,
             longitude:0
         };
-        isValidPincode(pincode.value).then(isValid=>{
-            if(!isValid) {
-                const pincodeMDC = new mdc.textField.MDCTextField(document.getElementById('pincode-mdc'));
-                setHelperInvalid(pincodeMDC,'Enter a valid pincode')
-                submitBtn.classList.remove('active')
-                return
-            }
-            clone.attachment['Pincode'].value = pincode.value;
+     
             http('PUT',`${appKeys.getBaseUrl()}/api/activities/update`,clone).then(res=>{
                 const tx = window.database.transaction("activities",'readwrite');
                 const store = tx.objectStore("activities");
@@ -94,7 +84,6 @@ const updateForm = (record) => {
             }).catch(err=>{
                 handleFormButtonSubmit(submitBtn,err.message);
             })
-        })
         return
     })
 }
