@@ -34,11 +34,13 @@ const putActivity = (activity) => {
 const getOfficeActivity = (officeId) => {
     return new Promise((resolve, reject) => {
         getActivity(officeId).then(record => {
+            
+            // if()
 
-            if (record && officeHasMembership(record.schedule) && !isOfficeMembershipExpired(record.schedule)) {
-                return resolve(record);
-            }
-
+            // if (record && officeHasMembership(record.schedule) && !isOfficeMembershipExpired(record.schedule)) {
+            //     return resolve(record);
+            // }
+            
             http('GET', `${appKeys.getBaseUrl()}/api/office/${officeId}/activity/${officeId}/`).then(officeActivity => {
                 putActivity(officeActivity).then(resolve)
             }).catch(reject)
@@ -61,7 +63,7 @@ const updateCompanyProfile = (activity) => {
         companyLogo.src = activity.attachment['Company Logo'].value;
     }
     companyName.textContent = activity.attachment['Name'].value;
-    companyAddress.textContent = activity.attachment['Registered Office Address'].value;
+    companyAddress.textContent = activity.attachment['Registered Office Address'] ? activity.attachment['Registered Office Address'].value : '';
     companyDescription.textContent = activity.attachment['Description'].value;
     companyCategory.textContent = activity.attachment['Category'] ? activity.attachment['Category'].value : '';
 

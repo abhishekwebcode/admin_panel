@@ -7,6 +7,7 @@ var pincode = document.getElementById('pincode');
 var form = document.getElementById('manage-form');
 var logoCont = document.getElementById('company-logo');
 var uploadLogo = document.getElementById('upload-logo');
+var imageErrorEl = document.getElementById('image-upload-error');
 var removeLogo = document.getElementById('remove-logo');
 var submitBtn = form.querySelector('.form-actionable .mdc-fab--action[type="submit"]');
 
@@ -37,7 +38,8 @@ var updateForm = function updateForm(record) {
   }
 
   uploadLogo.addEventListener('change', function (ev) {
-    getImageBase64(ev).then(function (base64) {
+    getImageBase64(ev, 0.5).then(function (base64) {
+      imageErrorEl.innerHTML = '';
       logoCont.classList.remove('hidden');
       logoCont.style.backgroundImage = "url(\"".concat(base64, "\")");
       removeLogo.addEventListener('click', function () {
@@ -45,6 +47,19 @@ var updateForm = function updateForm(record) {
         logoCont.style.backgroundImage = '';
         logoCont.classList.add('hidden');
       });
+    }).catch(function (imageUploadErr) {
+      switch (imageUploadErr.message) {
+        case 'file-size-too-large':
+          imageErrorEl.textContent = 'Image size should be less than 10MB';
+          break;
+
+        case 'file-not-exist':
+          imageErrorEl.textContent = 'File does not exist';
+          break;
+
+        default:
+          imageErrorEl.textContent = error.message;
+      }
     });
   });
   form.addEventListener('submit', function (ev) {

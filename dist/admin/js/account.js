@@ -17,6 +17,7 @@ var init = function init(office, officeId) {
   var emailField = new mdc.textField.MDCTextField(document.getElementById('account-email'));
   var imageField = document.querySelector('.account-photo');
   var imageUpload = document.getElementById('image-upload');
+  var imageErrorEl = document.getElementById('image-upload-error');
   var submitBtn = form.querySelector('.form-submit[type="submit"]');
   var base64Image = auth.photoURL;
   nameField.value = auth.displayName || '';
@@ -28,9 +29,23 @@ var init = function init(office, officeId) {
 
   ;
   imageUpload.addEventListener('change', function (ev) {
-    getImageBase64(ev).then(function (base64) {
+    getImageBase64(ev, 0.8, parseInt(imageUpload.dataset.maxFileSize)).then(function (base64) {
+      imageErrorEl.innerHTML = '';
       base64Image = base64;
       imageField.style.backgroundImage = "url(\"".concat(base64, "\")");
+    }).catch(function (imageError) {
+      switch (imageError.message) {
+        case 'file-size-too-large':
+          imageErrorEl.textContent = 'Image size should be less than 10MB';
+          break;
+
+        case 'file-not-exist':
+          imageErrorEl.textContent = 'File does not exist';
+          break;
+
+        default:
+          imageErrorEl.textContent = error.message;
+      }
     });
   });
   form.addEventListener('submit', function (ev) {
