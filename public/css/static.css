@@ -2242,13 +2242,13 @@ input:-webkit-autofill:focus {
   font-weight: 500;
 }
 
-.onboarding .office-container .logo-container {
+.onboarding  .logo-container {
   display: flex;
   width: 100%;
   margin-bottom: 10px;
 }
 
-.onboarding .office-container .image-cont {
+.onboarding .logo-container .image-cont {
   position: relative;
   margin-left: auto;
   border-radius: 50%;
@@ -2263,7 +2263,7 @@ input:-webkit-autofill:focus {
   display: block;
 }
 
-.onboarding .office-container .logo-container .remove {
+.onboarding .logo-container  .remove {
   background-color: rgba(0, 0, 0, 0.5);
 
   border-bottom-left-radius: 800px;

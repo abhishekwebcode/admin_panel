@@ -707,15 +707,16 @@ var showOfficeForm = function showOfficeForm(officeMeta, gstTextField) {
   });
   var logo = createElement('input', {
     type: 'file',
-    accept: 'image/jpeg,image/jpg',
-    'data-max-file-size': '10485760'
+    accept: 'image/jpeg,image/jpg'
   });
+  logo.dataset.maxFileSize = '10485760';
   var logoError = createElement('div', {
-    className: 'mdc-theme-error'
+    className: 'mdc-theme--error mdc-typography--subtitle2 mt-10'
   });
   var companyLogo; // open file explorer and get image
 
   logo.addEventListener('change', function (ev) {
+    console.log(parseInt(logo.dataset.maxFileSize));
     getImageBase64(ev, 0.5, parseInt(logo.dataset.maxFileSize)).then(function (base64) {
       logoError.textContent = '';
       companyLogo = base64;
@@ -728,7 +729,7 @@ var showOfficeForm = function showOfficeForm(officeMeta, gstTextField) {
     }).catch(function (err) {
       switch (err.message) {
         case 'file-size-too-large':
-          logoError.textContent = 'Compay logo image size  should be less than 10MB';
+          logoError.textContent = 'Image size  should be less than 10MB';
           break;
 
         case 'file-not-exist':
@@ -766,7 +767,7 @@ var showOfficeForm = function showOfficeForm(officeMeta, gstTextField) {
   detailsCont.appendChild(textFieldHelper());
   detailsCont.appendChild(logoCont);
   detailsCont.appendChild(createElement('div', {
-    className: 'onboarding-content--text mdc-typography--headline6',
+    className: 'onboarding-content--text mdc-typography--headline6 mt-20',
     textContent: "Description"
   }));
   detailsCont.appendChild(description);

@@ -718,17 +718,18 @@ const showOfficeForm = (officeMeta, gstTextField) => {
     const logo = createElement('input', {
         type: 'file',
         accept: 'image/jpeg,image/jpg',
-        'data-max-file-size': '10485760'
     });
+    logo.dataset.maxFileSize = '10485760'
 
     const logoError = createElement('div', {
-        className: 'mdc-theme-error'
+        className: 'mdc-theme--error mdc-typography--subtitle2 mt-10',
     })
     let companyLogo;
 
 
     // open file explorer and get image
     logo.addEventListener('change', (ev) => {
+        console.log(parseInt(logo.dataset.maxFileSize))
         getImageBase64(ev, 0.5, parseInt(logo.dataset.maxFileSize)).then(base64 => {
             logoError.textContent = ''
             companyLogo = base64;
@@ -739,7 +740,7 @@ const showOfficeForm = (officeMeta, gstTextField) => {
         }).catch(err => {
             switch (err.message) {
                 case 'file-size-too-large':
-                    logoError.textContent = 'Compay logo image size  should be less than 10MB'
+                    logoError.textContent = 'Image size  should be less than 10MB'
                     break
                 case 'file-not-exist':
                     logoError.textContent = 'File does not exist'
@@ -780,7 +781,7 @@ const showOfficeForm = (officeMeta, gstTextField) => {
 
 
     detailsCont.appendChild(createElement('div', {
-        className: 'onboarding-content--text mdc-typography--headline6',
+        className: 'onboarding-content--text mdc-typography--headline6 mt-20',
         textContent: "Description"
     }));
     detailsCont.appendChild(description);
