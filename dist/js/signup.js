@@ -767,10 +767,6 @@ var showOfficeForm = function showOfficeForm(officeMeta, gstTextField) {
   detailsCont.appendChild(logoCont);
   detailsCont.appendChild(createElement('div', {
     className: 'onboarding-content--text mdc-typography--headline6',
-    textContent: "Company's address"
-  }));
-  detailsCont.appendChild(createElement('div', {
-    className: 'onboarding-content--text mdc-typography--headline6',
     textContent: "Description"
   }));
   detailsCont.appendChild(description);
