@@ -10,9 +10,19 @@ var init = function init(office, officeId) {
   // if activity id is  found, then udpate the form else create
   var formId = getFormId();
   var requestParams = getFormRequestParams();
+  var canEdit = new URLSearchParams(window.location.search).get('canEdit') === "true";
 
   if (formId) {
-    document.getElementById('form-heading').innerHTML = 'Update ' + new URLSearchParams(window.location.search).get('name');
+    if (canEdit) {
+      document.getElementById('form-heading').innerHTML = 'Update ' + new URLSearchParams(window.location.search).get('name');
+    } else {
+      submitBtn.remove();
+      productName.setAttribute('disabled', 'true');
+      brand.setAttribute('disabled', 'true');
+      price.setAttribute('disabled', 'true');
+      description.setAttribute('disabled', 'true');
+    }
+
     getActivity(formId).then(function (activity) {
       if (activity) {
         updateProductFields(activity);

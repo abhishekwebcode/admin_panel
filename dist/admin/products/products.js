@@ -1,5 +1,6 @@
 var init = function init(office, officeId) {
-  getProductList({
+  getTypeList({
+    template: 'product',
     officeId: officeId
   }, function (products) {
     showProductList(products);

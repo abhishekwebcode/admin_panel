@@ -39,15 +39,37 @@ var putActivity = function putActivity(activity) {
 var getOfficeActivity = function getOfficeActivity(officeId) {
   return new Promise(function (resolve, reject) {
     getActivity(officeId).then(function (record) {
-      // if()
-      // if (record && officeHasMembership(record.schedule) && !isOfficeMembershipExpired(record.schedule)) {
-      //     return resolve(record);
-      // }
-      http('GET', "".concat(appKeys.getBaseUrl(), "/api/office/").concat(officeId, "/activity/").concat(officeId, "/")).then(function (officeActivity) {
-        putActivity(officeActivity).then(resolve);
-      }).catch(reject);
+      // lengthy byt his will work for now
+      //TODO : change wrangler file to clean paths for all .html & index pages
+      // /admin/index.html -> /admin/
+      if (shouldFetchOfficeActivity(record)) {
+        http('GET', "".concat(appKeys.getBaseUrl(), "/api/office/").concat(officeId, "/activity/").concat(officeId, "/")).then(function (officeActivity) {
+          putActivity(officeActivity).then(resolve);
+        }).catch(reject);
+        return;
+      }
+
+      resolve(record);
     });
+    return;
   });
+};
+
+var shouldFetchOfficeActivity = function shouldFetchOfficeActivity(record) {
+  if (new URLSearchParams(window.location.search).has('renewd') || !record) return true;
+  var fetch = false;
+
+  switch (window.location.pathname) {
+    case '/admin':
+    case '/admin/index.html':
+    case '/admin/company/manage.html':
+    case '/admin/account':
+    case '/admin/account.html':
+      fetch = true;
+      break;
+  }
+
+  return fetch;
 };
 
 var handleProfileDetails = function handleProfileDetails(officeId) {
@@ -328,4 +350,32 @@ var isUserActive = function isUserActive(user) {
   if (!user) return;
   if (user.employeeStatus === 'CANCELLED') return;
   return !(!user.employeeId && !user.adminId && !user.subscriptions.length);
+};
+
+var getTypeList = function getTypeList(props, onSuccess, onError) {
+  var officeId = props.officeId;
+  var limit = props.limit;
+  var loadOnce = props.loadOnce;
+  var template = props.template;
+
+  window.database.transaction("types").objectStore("types").index("template").getAll(template, limit).onsuccess = function (e) {
+    var records = e.target.result.filter(function (rec) {
+      return rec.officeId === officeId;
+    });
+    onSuccess(records);
+    if (records.length && loadOnce) return;
+    http('GET', "".concat(appKeys.getBaseUrl(), "/api/office/").concat(officeId, "/type?template=").concat(template).concat(limit ? "&limit=".concat(limit, "&start=0") : '')).then(function (response) {
+      var tx = window.database.transaction("types", "readwrite");
+      var store = tx.objectStore("types");
+      response.results.forEach(function (result) {
+        result.template = template;
+        result.search_key_name = result.name.toLowerCase();
+        store.put(result);
+      });
+
+      tx.oncomplete = function () {
+        onSuccess(response.results);
+      };
+    }).catch(onError);
+  };
 };

@@ -101,37 +101,29 @@
                 <h3 class="mdc-drawer__title">Manage office</h3>
                 <div class="mdc-select mdc-select--outlined mdc-select--no-label" id="office-select">
                     <div class="mdc-select__anchor" aria-labelledby="outlined-select-label">
-                      <span id="demo-selected-text" class="mdc-select__selected-text"></span>
-                      <span class="mdc-select__dropdown-icon">
-                        <svg
-                            class="mdc-select__dropdown-icon-graphic"
-                            viewBox="7 10 10 5">
-                          <polygon
-                              class="mdc-select__dropdown-icon-inactive"
-                              stroke="none"
-                              fill-rule="evenodd"
-                              points="7 10 12 15 17 10">
-                          </polygon>
-                          <polygon
-                              class="mdc-select__dropdown-icon-active"
-                              stroke="none"
-                              fill-rule="evenodd"
-                              points="7 15 12 10 17 15">
-                          </polygon>
-                        </svg>
-                      </span>
-                      <span class="mdc-notched-outline">
-                        <span class="mdc-notched-outline__leading"></span>
-                        <span class="mdc-notched-outline__trailing"></span>
-                      </span>
+                        <span id="demo-selected-text" class="mdc-select__selected-text"></span>
+                        <span class="mdc-select__dropdown-icon">
+                            <svg class="mdc-select__dropdown-icon-graphic" viewBox="7 10 10 5">
+                                <polygon class="mdc-select__dropdown-icon-inactive" stroke="none" fill-rule="evenodd"
+                                    points="7 10 12 15 17 10">
+                                </polygon>
+                                <polygon class="mdc-select__dropdown-icon-active" stroke="none" fill-rule="evenodd"
+                                    points="7 15 12 10 17 15">
+                                </polygon>
+                            </svg>
+                        </span>
+                        <span class="mdc-notched-outline">
+                            <span class="mdc-notched-outline__leading"></span>
+                            <span class="mdc-notched-outline__trailing"></span>
+                        </span>
                     </div>
-                  
+
                     <!-- Other elements from the select remain. -->
                     <div class="mdc-select__menu mdc-menu mdc-menu-surface mdc-menu-surface--fullwidth" role="listbox">
                         <ul class="mdc-list" id="office-list">
                         </ul>
                     </div>
-                  </div>
+                </div>
 
             </div>
             <nav class="mdc-list">
@@ -174,14 +166,15 @@
                         <p id="employee-text" class="mb-10">
 
                         </p>
-                        <button class="mdc-button mdc-button--outlined mdc-theme--error employee-status-button"  type="button" id="employee-status-btn">
+                        <button class="mdc-button mdc-button--outlined mdc-theme--error employee-status-button"
+                            type="button" id="employee-status-btn">
                             <div class="mdc-button__ripple"></div>
                             <i class="material-icons mdc-button__icon" aria-hidden="true">delete</i>
                             <div class="straight-loader"></div>
                             <span class="mdc-button__label"></span>
                         </button>
                     </div>
-                    
+
 
                     <div class="product-container">
                         <div class="form-label mdc-typography--headline6">Employee name</div>
@@ -250,6 +243,36 @@
                             </span>
                         </label>
 
+                        <div class="form-label mdc-typography--headline6">Branch</div>
+                        <div class="mdc-select mdc-select--outlined mdc-select--required" id="branch-select">
+                            <div class="mdc-select__anchor" aria-labelledby="outlined-select-label" aria-required="true">
+                                <span  class="mdc-select__selected-text"></span>
+                                <span class="mdc-select__dropdown-icon">
+                                    <svg class="mdc-select__dropdown-icon-graphic" viewBox="7 10 10 5">
+                                        <polygon class="mdc-select__dropdown-icon-inactive" stroke="none"
+                                            fill-rule="evenodd" points="7 10 12 15 17 10">
+                                        </polygon>
+                                        <polygon class="mdc-select__dropdown-icon-active" stroke="none"
+                                            fill-rule="evenodd" points="7 15 12 10 17 15">
+                                        </polygon>
+                                    </svg>
+                                </span>
+                                <span class="mdc-notched-outline">
+                                    <span class="mdc-notched-outline__leading"></span>
+                                    <span class="mdc-notched-outline__notch">
+                                        <span id="outlined-select-label" class="mdc-floating-label">Select a
+                                            branch</span>
+                                    </span>
+                                    <span class="mdc-notched-outline__trailing"></span>
+                                </span>
+                            </div>
+
+                            <div class="mdc-select__menu mdc-menu mdc-menu-surface" role="listbox">
+                                <ul class="mdc-list" id="branch-list">
+                                    
+                                </ul>
+                            </div>
+                        </div>
 
                         <div class="form-label mdc-typography--headline6">Designation</div>
                         <label class="mdc-text-field mdc-text-field--outlined  mdc-text-field--no-label"
@@ -264,7 +287,7 @@
 
                     </div>
                     <div class="form-actionable">
-                    
+
                         <button class="mdc-fab mdc-fab--extended mdc-fab--action" data-mdc-auto-init="MDCRipple"
                             type="submit">
                             <div class="mdc-fab__ripple"></div>
@@ -307,26 +330,25 @@
 
     <div class="mdc-dialog" id="remove-employee-confirm-dialog">
         <div class="mdc-dialog__container">
-          <div class="mdc-dialog__surface"
-            role="alertdialog"
-            aria-modal="true">
-            <div class="mdc-dialog__content">
-            </div>
+            <div class="mdc-dialog__surface" role="alertdialog" aria-modal="true">
+                <div class="mdc-dialog__content">
+                </div>
 
-            <div class="mdc-dialog__actions">
-              <button type="button" class="mdc-button mdc-dialog__button" data-mdc-dialog-action="cancel">
-                <div class="mdc-button__ripple"></div>
-                <span class="mdc-button__label">Cancel</span>
-              </button>
-              <button type="button" class="mdc-button mdc-dialog__button mdc-theme--error" data-mdc-dialog-action="accept">
-                <div class="mdc-button__ripple"></div>
-                <span class="mdc-button__label">Remove</span>
-              </button>
+                <div class="mdc-dialog__actions">
+                    <button type="button" class="mdc-button mdc-dialog__button" data-mdc-dialog-action="cancel">
+                        <div class="mdc-button__ripple"></div>
+                        <span class="mdc-button__label">Cancel</span>
+                    </button>
+                    <button type="button" class="mdc-button mdc-dialog__button mdc-theme--error"
+                        data-mdc-dialog-action="accept">
+                        <div class="mdc-button__ripple"></div>
+                        <span class="mdc-button__label">Remove</span>
+                    </button>
+                </div>
             </div>
-          </div>
         </div>
         <div class="mdc-dialog__scrim"></div>
-      </div>
+    </div>
     <!-- Google Tag Manager -->
     <script>
         (function (w, d, s, l, i) {
@@ -353,6 +375,7 @@
     <script src="../js/setup.js"></script>
     <script src="../js/utils.js"></script>
     <script src="./employee-utils.js"></script>
+    <script src="../branches/branch-utils.js"></script>
     <script src="./manage.js"></script>
     <script src="../js/moment.min.js"></script>
 </body>

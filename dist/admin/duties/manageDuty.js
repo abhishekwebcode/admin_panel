@@ -112,8 +112,9 @@ var init = function init(office, officeId) {
   var productMenu = new mdc.menu.MDCMenu(document.getElementById('product-menu'));
   /**  manage products */
 
-  getProductList({
+  getTypeList({
     officeId: officeId,
+    template: 'product',
     loadOnce: true
   }, function (products) {
     initializeSearch(productSearch, function (value) {

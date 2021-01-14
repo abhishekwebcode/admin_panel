@@ -255,12 +255,16 @@ const startApplication = (office) => {
         })
         appLoader.remove();
 
+        if(window.location.pathname.endsWith('account.html') || window.location.pathname.endsWith('account')) {
+            init(office,officeActivity.officeId);
+            return
+        }
 
         const dialog = new mdc.dialog.MDCDialog(document.getElementById('payment-dialog'));
         const dialogBody = document.getElementById('payment-dialog--body');
         const dialogTitle = document.getElementById('my-dialog-title');
         const renewBtn = document.getElementById('choose-plan-button');
-        renewBtn.href = `./account.html#subscription-cont`;
+        renewBtn.href = `${window.location.origin}/admin/account.html`;
         const schedule = officeActivity.schedule;
         const isUserFirstContact = officeActivity.attachment['First Contact'].value === firebase.auth().currentUser.phoneNumber;
         if (!hasMultipleOffice) {

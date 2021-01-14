@@ -2,9 +2,10 @@
 var mainContent = document.querySelector('.main-content');
 var searchInput = document.getElementById('search-location');
 var ul = document.getElementById('locations-list');
+var addBranchBtn = document.getElementById('add-branch');
 /**
  * Divide the parent dom by mdc two--line list height and round of to nearest whole number.
- * The resulting positive integer will the query limit for users's api
+ * The resulting positive integer will be the query limit for users's api
  */
 
 var query_limit_size = Math.round((document.body.offsetHeight - ul.offsetTop) / 57);

@@ -246,8 +246,8 @@ var startApplication = function startApplication(office) {
     });
     appLoader.remove();
 
-    if (window.location.pathname.split("/").indexOf("account") > -1 || window.location.pathname.split("/").indexOf("account.html") > -1) {
-      init(office, officeActivity.activityId);
+    if (window.location.pathname.slice(-'account.html'.length) === 'account.html' || window.location.pathname.slice(-'account'.length) === 'account') {
+      init(office, officeActivity.officeId);
       return;
     }
 
@@ -255,7 +255,7 @@ var startApplication = function startApplication(office) {
     var dialogBody = document.getElementById('payment-dialog--body');
     var dialogTitle = document.getElementById('my-dialog-title');
     var renewBtn = document.getElementById('choose-plan-button');
-    renewBtn.href = "./account.html#subscription-cont";
+    renewBtn.href = "".concat(window.location.origin, "/admin/account.html");
     var schedule = officeActivity.schedule;
     var isUserFirstContact = officeActivity.attachment['First Contact'].value === firebase.auth().currentUser.phoneNumber;
 

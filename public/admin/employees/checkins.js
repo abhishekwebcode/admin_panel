@@ -52,7 +52,7 @@ const init = (office, officeId) => {
         return
     }
 
-    editIcon.href = `./manage.html?id=${user.employeeId}&name=${user.employeeName || user.displayName || user.phoneNumber}`
+    editIcon.href = `./manage.html?id=${user.employeeId}&name=${user.employeeName || user.displayName || user.phoneNumber}&canEdit=${user.canEdit}`
     editIcon.classList.remove('hidden');
 
     window.database

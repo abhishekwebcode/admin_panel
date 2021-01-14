@@ -9,17 +9,32 @@ var form = document.getElementById('manage-form');
 var submitBtn = form.querySelector('.form-actionable .mdc-fab--action[type="submit"]');
 var employeeStatusButton = document.getElementById('employee-status-btn');
 var employeeActivity;
+var branchSelect;
 
 var init = function init(office, officeId) {
   // check if we have activity id in url. 
   // if activity id is  found, then udpate the form else create
   var formId = getFormId();
+  var canEdit = new URLSearchParams(window.location.search).get('canEdit') === "true";
   var requestParams = getFormRequestParams();
   var employeePhoneNumberMdc = new mdc.textField.MDCTextField(document.getElementById('phone-field-mdc'));
   var iti = phoneFieldInit(employeePhoneNumberMdc);
+  branchSelect = new mdc.select.MDCSelect(document.getElementById('branch-select'));
 
   if (formId) {
-    document.getElementById('form-heading').innerHTML = 'Update ' + new URLSearchParams(window.location.search).get('name');
+    if (canEdit) {
+      document.getElementById('form-heading').innerHTML = 'Update ' + new URLSearchParams(window.location.search).get('name');
+    } else {
+      submitBtn.remove();
+      employeeName.setAttribute('disabled', 'true'); // phonenumber.setAttribute('disabled')
+
+      designation.setAttribute('disabled', 'true');
+      code.setAttribute('disabled', 'true');
+      supervisorInput.setAttribute('disabled', 'true');
+      branchSelect.disabled = true;
+      employeePhoneNumberMdc.disabled = true;
+    }
+
     getActivity(formId).then(function (activity) {
       if (activity) {
         employeeActivity = activity;
@@ -44,6 +59,38 @@ var init = function init(office, officeId) {
     supervisorInput.value = user.employeeName || user.displayName || user.phoneNumber;
     supervisorInput.dataset.number = user.phoneNumber;
   });
+  var oldBranches = {};
+  var newBranches = {};
+  getTypeList({
+    template: 'branch',
+    officeId: officeId
+  }, function (branches) {
+    console.log('branches', branches);
+    var ul = document.getElementById('branch-list');
+    var oldBranchLength = Object.keys(oldBranches).length;
+    branches.forEach(function (branch) {
+      newBranches[branch.name] = branch;
+    });
+
+    if (!oldBranchLength) {
+      oldBranches = newBranches;
+    }
+
+    removeOldBranches(oldBranches, newBranches);
+    branches.forEach(function (branch) {
+      if (!document.querySelector("[data-value=\"".concat(branch.name, "\"]"))) {
+        var li = createElement('li', {
+          className: 'mdc-list-item'
+        });
+        li.dataset.value = branch.name;
+        li.innerHTML = "<span class=\"mdc-list-item__ripple\"></span>\n                    <span class=\"mdc-list-item__text\">".concat(branch.name, "</span>");
+        ul.appendChild(li);
+      }
+    });
+    branchSelect.selectedIndex = 0;
+  }, function (error) {
+    console.error(error);
+  });
   form.addEventListener('submit', function (ev) {
     ev.preventDefault();
     var error = iti.getValidationError();
@@ -60,6 +107,17 @@ var init = function init(office, officeId) {
     }
 
     ;
+
+    if (!branchSelect) {
+      alert('Select a branch');
+      return;
+    }
+
+    if (!branchSelect.value) {
+      alert('Select a branch');
+      return;
+    }
+
     setHelperValid(employeePhoneNumberMdc);
     submitBtn.classList.add('active');
     var activityBody = createActivityBody();
@@ -71,6 +129,7 @@ var init = function init(office, officeId) {
     activityBody.setAttachment('Designation', designation.value, 'string');
     activityBody.setAttachment('Employee Code', code.value, 'string');
     activityBody.setAttachment('First Supervisor', supervisorInput.dataset.number, 'phoneNumber');
+    activityBody.setAttachment('Base Location', branchSelect.value, 'branch');
     var requestBody = activityBody.get();
     getUser(officeId, firebase.auth().currentUser.phoneNumber).then(function (userRecord) {
       createEmployee(requestParams, requestBody, hasEmployeeSubscription(userRecord));
@@ -174,6 +233,7 @@ var updateEmployeeFields = function updateEmployeeFields(officeId, activity) {
     });
   }
 
+  branchSelect.value = activity.attachment['Base Location'].value;
   var employeeText = document.getElementById('employee-text');
   employeeText.textContent = "".concat(activity.attachment.Name.value, " is a registered employee");
   employeeStatusButton.querySelector('.mdc-button__label').textContent = "Remove ".concat(empName.split(" ")[0]);

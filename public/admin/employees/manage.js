@@ -27,18 +27,17 @@ const init = (office, officeId) => {
     const employeePhoneNumberMdc = new mdc.textField.MDCTextField(document.getElementById('phone-field-mdc'))
     const iti = phoneFieldInit(employeePhoneNumberMdc);
     branchSelect = new mdc.select.MDCSelect(document.getElementById('branch-select'))
-
     if (formId) {
         if (canEdit) {
             document.getElementById('form-heading').innerHTML = 'Update ' + new URLSearchParams(window.location.search).get('name')
         }
         else {
             submitBtn.remove();
-            employeeName.setAttribute('disabled')
+            employeeName.setAttribute('disabled','true')
             // phonenumber.setAttribute('disabled')
-            designation.setAttribute('disabled')
-            code.setAttribute('disabled')
-            supervisorInput.setAttribute('disabled')
+            designation.setAttribute('disabled','true')
+            code.setAttribute('disabled','true')
+            supervisorInput.setAttribute('disabled','true')
             branchSelect.disabled = true
             employeePhoneNumberMdc.disabled = true
         }
@@ -71,7 +70,6 @@ const init = (office, officeId) => {
     })
 
 
-    // const branchSelect = document.getElementById('branch-select').MDCSelect;
     let oldBranches = {}
     const newBranches = {}
 
@@ -106,7 +104,7 @@ const init = (office, officeId) => {
             }
         })
 
-
+        branchSelect.selectedIndex = 0;
 
     }, (error) => {
         console.error(error)
@@ -129,7 +127,11 @@ const init = (office, officeId) => {
             return;
         };
 
-        if (!branchSelect && !branchSelect.value) {
+        if (!branchSelect) {
+            alert('Select a branch')
+            return
+        }
+        if(!branchSelect.value) {
             alert('Select a branch')
             return
         }
@@ -157,13 +159,7 @@ const init = (office, officeId) => {
     })
 }
 
-const removeOldBranches = (oldBranch, newBranch) => {
-    Object.keys(oldBranch).forEach(key => {
-        if (!newBranch[key]) {
-            document.querySelector(`[data-value="${key}"]`).remove()
-        }
-    });
-}
+
 
 const hasEmployeeSubscription = (userRecord) => {
     if (!userRecord) return;
@@ -247,7 +243,7 @@ const updateEmployeeFields = (officeId, activity) => {
         })
     }
 
-    branchSelect.value = activity.attachment.Branch.value
+    branchSelect.value = activity.attachment['Base Location'].value
 
     const employeeText = document.getElementById('employee-text')
     employeeText.textContent = `${activity.attachment.Name.value} is a registered employee`

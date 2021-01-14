@@ -255,7 +255,7 @@ const createUserli = (user) => {
     li.addEventListener('click', (ev) => {
         if(!activeUser) return;
         localStorage.setItem('selected_user', JSON.stringify(user));
-        redirect(`/admin/employees/checkins.html?employeeId=${user.employeeId}&canEdit=${user.canEdit}`);
+        redirect(`/admin/employees/checkins.html?employeeId=${user.employeeId}`);
     })
     return li;
 }

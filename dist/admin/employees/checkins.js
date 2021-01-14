@@ -55,7 +55,7 @@ var init = function init(office, officeId) {
     return;
   }
 
-  editIcon.href = "./manage.html?id=".concat(user.employeeId, "&name=").concat(user.employeeName || user.displayName || user.phoneNumber);
+  editIcon.href = "./manage.html?id=".concat(user.employeeId, "&name=").concat(user.employeeName || user.displayName || user.phoneNumber, "&canEdit=").concat(user.canEdit);
   editIcon.classList.remove('hidden');
 
   window.database.transaction("users").objectStore("users").get(user.phoneNumber).onsuccess = function (event) {

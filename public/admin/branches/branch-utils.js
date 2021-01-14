@@ -35,3 +35,11 @@ const createBranchLi = (branch) => {
     </div>`
     return li;
 }
+
+const removeOldBranches = (oldBranch, newBranch) => {
+    Object.keys(oldBranch).forEach(key => {
+        if (!newBranch[key]) {
+            document.querySelector(`[data-value="${key}"]`).remove()
+        }
+    });
+}

@@ -33,16 +33,39 @@ const putActivity = (activity) => {
 }
 const getOfficeActivity = (officeId) => {
     return new Promise((resolve, reject) => {
-        const pathsForFetch = ['account','admin','company']
-        const lastPathName = window.location.pathname.split('/').filter(p=>p).pop()
+       
         getActivity(officeId).then(record => {
-            if(pathsForFetch.indexOf(lastPathName) == -1) return resolve(record)
-    
-            http('GET', `${appKeys.getBaseUrl()}/api/office/${officeId}/activity/${officeId}/`).then(officeActivity => {
-                putActivity(officeActivity).then(resolve)
-            }).catch(reject)
+            
+            // lengthy byt his will work for now
+            //TODO : change wrangler file to clean paths for all .html & index pages
+            // /admin/index.html -> /admin/
+
+            if(shouldFetchOfficeActivity(record)) {
+                http('GET', `${appKeys.getBaseUrl()}/api/office/${officeId}/activity/${officeId}/`).then(officeActivity => {
+                    putActivity(officeActivity).then(resolve)
+                }).catch(reject)
+                return
+            }
+            resolve(record);
         })
+        return
     })
+}
+
+const shouldFetchOfficeActivity = (record) => {
+    if(new URLSearchParams(window.location.search).has('renewd') || !record) return true;
+
+    let fetch = false;
+    switch(window.location.pathname) {
+        case '/admin':
+        case '/admin/index.html':
+        case '/admin/company/manage.html':
+        case '/admin/account':
+        case '/admin/account.html':
+            fetch = true
+            break;
+    }
+    return fetch;
 }
 
 const handleProfileDetails = (officeId) => {
@@ -275,9 +298,9 @@ const toggleFabList = (parentButton) => {
     })
 }
 
-const appLoader = function() {
+const appLoader = function () {
     return {
-        show : () => {
+        show: () => {
             const div = createElement('div', {
                 className: 'initializing-box mdc-elevation--z4'
             })
@@ -287,7 +310,7 @@ const appLoader = function() {
             document.querySelector('.mdc-drawer-app-content').classList.add('initializing-db');
             document.querySelector('.mdc-drawer').classList.add('hidden')
         },
-        remove : () => {
+        remove: () => {
             document.getElementById('app-loader').innerHTML = ''
             document.querySelector('.mdc-drawer-app-content').classList.remove('initializing-db');
             document.querySelector('.mdc-drawer').classList.remove('hidden')
@@ -299,26 +322,26 @@ const appLoader = function() {
 
 
 const userStatusChange = (userActivity) => {
-    return new Promise((resolve,reject)=>{
+    return new Promise((resolve, reject) => {
         http('POST', `${appKeys.getBaseUrl()}/api/services/changeUserStatus`, {
-            phoneNumber: userActivity.attachment['Phone Number'].value,
-            office: userActivity.office
-        }).then(() => {
-            if(!userActivity.activityId) return Promise.resolve();
+                phoneNumber: userActivity.attachment['Phone Number'].value,
+                office: userActivity.office
+            }).then(() => {
+                if (!userActivity.activityId) return Promise.resolve();
 
-            userActivity.status === 'CANCELLED';
-            return putActivity(userActivity)
-        }).then(() => {
-            return updateUser(userActivity.attachment['Phone Number'].value, {
-                employeeStatus: userActivity.activityId ? 'CANCELLED' : null
+                userActivity.status === 'CANCELLED';
+                return putActivity(userActivity)
+            }).then(() => {
+                return updateUser(userActivity.attachment['Phone Number'].value, {
+                    employeeStatus: userActivity.activityId ? 'CANCELLED' : null
+                })
+            }).then(() => {
+                localStorage.removeItem('selected_user');
+                setTimeout(() => {
+                    return resolve()
+                }, 4000)
             })
-        }).then(() => {
-            localStorage.removeItem('selected_user');
-            setTimeout(()=>{
-                return resolve()
-            },4000)
-        })
-        .catch(reject)
+            .catch(reject)
     })
 }
 
@@ -339,8 +362,8 @@ const updateUser = (phonenumber, attr) => {
 
 
 const isUserActive = (user) => {
-    if(!user) return;
-    if(user.employeeStatus === 'CANCELLED') return;
+    if (!user) return;
+    if (user.employeeStatus === 'CANCELLED') return;
     return !(
         !user.employeeId &&
         !user.adminId &&
@@ -349,42 +372,37 @@ const isUserActive = (user) => {
 }
 
 
-const getTypeList = (props,onSuccess,onError) => {
+const getTypeList = (props, onSuccess, onError) => {
     const officeId = props.officeId;
     const limit = props.limit;
     const loadOnce = props.loadOnce;
     const template = props.template
     window
-    .database
-    .transaction("types")
-    .objectStore("types")
-    .index("template")
-    .getAll(template,limit).onsuccess = function(e){
-        const records = e.target.result;
-        records.forEach((record,index)=>{
-            if(record.officeId !== officeId) {
-                records.splice(index,1)
-            }
-        })
+        .database
+        .transaction("types")
+        .objectStore("types")
+        .index("template")
+        .getAll(template, limit).onsuccess = function (e) {
+            const records = e.target.result.filter(rec=>rec.officeId === officeId)
 
-        onSuccess(records);    
-        if(records.length && loadOnce) return;
-        
-        http('GET', `${appKeys.getBaseUrl()}/api/office/${officeId}/type?template=${template}${limit ?`&limit=${limit}&start=0`:''}`).then(response => {
-            const tx = 
-            window
-            .database
-            .transaction("types","readwrite");
-            const store = tx.objectStore("types")
+            onSuccess(records);
+            if (records.length && loadOnce) return;
 
-            response.results.forEach(result=>{
-                result.template = template
-                result.search_key_name = result.name.toLowerCase();
-                store.put(result);
-            });
-            tx.oncomplete = function() {
-               onSuccess(response.results)
-            }
-        }).catch(onError)
-    }
+            http('GET', `${appKeys.getBaseUrl()}/api/office/${officeId}/type?template=${template}${limit ?`&limit=${limit}&start=0`:''}`).then(response => {
+                const tx =
+                    window
+                    .database
+                    .transaction("types", "readwrite");
+                const store = tx.objectStore("types")
+
+                response.results.forEach(result => {
+                    result.template = template
+                    result.search_key_name = result.name.toLowerCase();
+                    store.put(result);
+                });
+                tx.oncomplete = function () {
+                    onSuccess(response.results)
+                }
+            }).catch(onError)
+        }
 }

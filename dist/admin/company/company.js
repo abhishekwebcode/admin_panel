@@ -1,10 +1,19 @@
 var init = function init(office, officeId) {
   handleProfileDetails(officeId);
-  getProductList({
+  getTypeList({
     officeId: officeId,
-    limit: 5
+    limit: 5,
+    template: 'product'
   }, function (products) {
     console.log(products);
     showProductList(products);
+  });
+  getTypeList({
+    officeId: officeId,
+    limit: 5,
+    template: 'branch'
+  }, function (branches) {
+    console.log(branches);
+    showBranchList(branches);
   });
 };

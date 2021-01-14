@@ -2,7 +2,7 @@ const branchName = document.getElementById('name');
 const primaryPhoneNumber = document.getElementById('primary-phonenumber');
 const secondaryPhoneNumber = document.getElementById('secondary-phonenumber');
 const address = document.getElementById('address');
-const weeklyOff = document.getElementById('weekly-off');
+let weeklyOff = document.getElementById('weekly-off');
 const weekdayStartTime = document.getElementById('weekday-start-time')
 const weekdayEndTime = document.getElementById('weekday-end-time')
 
@@ -13,9 +13,10 @@ const submitBtn = form.querySelector('.form-actionable .mdc-fab--action[type="su
 const init = (office, officeId) => {
     // check if we have activity id in url. 
     // if activity id is  found, then udpate the form else create
+    weeklyOff = weeklyOff.MDCSelect;
     const formId = getFormId();
     const requestParams = getFormRequestParams();
-    const canEdit = new URLSearchParams(window.location.search).get('canEdit') === "true"
+    // const canEdit = new URLSearchParams(window.location.search).get('canEdit') === "true"
 
     const primaryPhoneNumberMdc = new mdc.textField.MDCTextField(document.getElementById('phone-field-mdc-primary'))
     const secondaryPhoneNumberMdc = new mdc.textField.MDCTextField(document.getElementById('phone-field-mdc-secondary'))
@@ -30,19 +31,19 @@ const init = (office, officeId) => {
     });
 
     if (formId) {
-        if(canEdit) {
-            document.getElementById('form-heading').innerHTML = 'Update ' + new URLSearchParams(window.location.search).get('name')
-        }
-        else {
-            branchName.setAttribute('disabled','true')
-            primaryPhoneNumber.setAttribute('disabled','true')
-            secondaryPhoneNumber.setAttribute('disabled','true')
-            address.setAttribute('disabled','true')
-            weeklyOff.setAttribute('disabled','true')
-            weekdayStartTime.setAttribute('disabled','true')
-            weekdayEndTime.setAttribute('disabled','true')
-            submitBtn.remove()
-        }
+        // if(canEdit) {
+        //     document.getElementById('form-heading').innerHTML = 'Update ' + new URLSearchParams(window.location.search).get('name')
+        // }
+        // else {
+        //     branchName.setAttribute('disabled','true')
+        //     primaryPhoneNumber.setAttribute('disabled','true')
+        //     secondaryPhoneNumber.setAttribute('disabled','true')
+        //     address.setAttribute('disabled','true')
+        //     weeklyOff.disabled = true
+        //     weekdayStartTime.setAttribute('disabled','true')
+        //     weekdayEndTime.setAttribute('disabled','true')
+        //     submitBtn.remove()
+        // }
         getActivity(formId).then(activity => {
             if (activity) {
                 updateBranchFields(activity)
@@ -108,7 +109,7 @@ const init = (office, officeId) => {
         activityBody.setAttachment('Second Contact',secondaryIti.getNumber(),'phoneNumber');
         activityBody.setAttachment('Weekday Start Time',weekdayStartTime.value,'HH:MM')
         activityBody.setAttachment('Weekday End Time',weekdayEndTime.value,'HH:MM')
-        activityBody.setAttachment('Weekly Off',weeklyOff.value,'weekdat')
+        activityBody.setAttachment('Weekly Off',weeklyOff.value,'weekday')
         const requestBody = activityBody.get();
    
 
@@ -149,7 +150,7 @@ const updateBranchFields = (activity) => {
     primaryPhoneNumber.value = activity.attachment['First Contact'].value;
     secondaryPhoneNumber.value = activity.attachment['Second Contact'].value;
     weeklyOff.value = activity.attachment['Weekly Off'].value
-    weekdayStartTime = ctivity.attachment['Weekday Start Time'].value
-    weekdayEndTime = ctivity.attachment['Weekday End Time'].value
-    address.value = activity.venue[0].address;
+    weekdayStartTime.value = activity.attachment['Weekday Start Time'].value
+    weekdayEndTime.value = activity.attachment['Weekday End Time'].value
+    address.value = activity.attachment.Address ? activity.attachment.Address.value : ''
 }
