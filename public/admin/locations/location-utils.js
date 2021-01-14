@@ -204,3 +204,4 @@ const createLocationLi = (location) => {
     new mdc.ripple.MDCRipple(li);
     return li;
 }
+

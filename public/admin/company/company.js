@@ -1,6 +1,6 @@
 const init = (office,officeId) => {
     handleProfileDetails(officeId);
-    getProductList({officeId,limit:5},(products)=>{
+    getTypeList({officeId,limit:5,template:'product'},(products)=>{
         console.log(products)
         showProductList(products)
     });

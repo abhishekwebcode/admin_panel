@@ -2,9 +2,10 @@
 const mainContent = document.querySelector('.main-content')
 const searchInput = document.getElementById('search-location');
 const ul = document.getElementById('locations-list');
+const addBranchBtn = document.getElementById('add-branch')
 /**
  * Divide the parent dom by mdc two--line list height and round of to nearest whole number.
- * The resulting positive integer will the query limit for users's api
+ * The resulting positive integer will be the query limit for users's api
  */
 const query_limit_size = Math.round((document.body.offsetHeight - ul.offsetTop) / 57)
 
@@ -55,6 +56,10 @@ const init = (office, officeId) => {
             })
         })
     }, 1000)
+
+    addBranchBtn.addEventListener('click',(ev)=>{
+        redirect('/admin/locations/branch')
+    })
 }
 
 

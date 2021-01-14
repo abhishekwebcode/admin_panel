@@ -1,7 +1,7 @@
 
 
 const init = (office,officeId) => {
-    getProductList({officeId},(products)=>{
+    getTypeList({template:'product',officeId},(products)=>{
         showProductList(products)
     });
     const searchProductInput = document.getElementById('search-product');

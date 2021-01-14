@@ -13,6 +13,7 @@ const submitBtn = form.querySelector('.form-actionable .mdc-fab--action[type="su
 const employeeStatusButton = document.getElementById('employee-status-btn');
 
 let employeeActivity;
+let branchSelect;
 
 const init = (office, officeId) => {
     // check if we have activity id in url. 
@@ -21,7 +22,7 @@ const init = (office, officeId) => {
     const requestParams = getFormRequestParams();
     const employeePhoneNumberMdc = new mdc.textField.MDCTextField(document.getElementById('phone-field-mdc'))
     const iti = phoneFieldInit(employeePhoneNumberMdc);
-
+    branchSelect = new mdc.select.MDCSelect(document.getElementById('branch-select'))
 
     if (formId) {
         document.getElementById('form-heading').innerHTML = 'Update ' + new URLSearchParams(window.location.search).get('name')
@@ -49,6 +50,30 @@ const init = (office, officeId) => {
         supervisorInput.dataset.number = user.phoneNumber;
     })
 
+
+    // const branchSelect = document.getElementById('branch-select').MDCSelect;
+    getTypeList({template:'branch',officeId},(branches)=>{
+        console.log('branches',branches)
+        const ul = document.getElementById('branch-list')
+        branches.forEach(branch=>{
+            const li = createElement('li',{
+                className:'mdc-list-item'
+            })
+            li.dataset.value = branch.attachment.Name.value
+            li.innerHTML = `<span class="mdc-list-item__ripple"></span>
+            <span class="mdc-list-item__text">${branch.attachment.Name.value}</span>`
+            ul.appendChild(li)
+        })  
+        
+    },(error)=>{
+        console.error(error)
+    })
+
+    branchSelect.listen('MDCSelect:change',()=>{
+        if(branchSelect.value === "new") {
+            redirect('/admin/locations/branch')
+        }
+    })
 
     form.addEventListener('submit', (ev) => {
 
@@ -78,9 +103,9 @@ const init = (office, officeId) => {
         activityBody.setAttachment('Designation', designation.value, 'string')
         activityBody.setAttachment('Employee Code', code.value, 'string');
         activityBody.setAttachment('First Supervisor', supervisorInput.dataset.number, 'phoneNumber');
-
+        
+        activityBody.setAttachment('Branch',branchSelect.value)
         const requestBody = activityBody.get();
-
         getUser(officeId,firebase.auth().currentUser.phoneNumber).then(userRecord => {
           
             createEmployee(requestParams, requestBody, hasEmployeeSubscription(userRecord))
@@ -169,6 +194,7 @@ const updateEmployeeFields = (officeId, activity) => {
             }
         })
     }
+    branchSelect.value = activity.attachment.Branch.value
     const employeeText = document.getElementById('employee-text')
 
 
@@ -178,6 +204,7 @@ const updateEmployeeFields = (officeId, activity) => {
     employeeStatusButton.addEventListener('click', statusChange, true);
     const selfNumber = firebase.auth().currentUser.phoneNumber;
     const employeeNumber = activity.attachment['Phone Number'].value;
+
     // if employeee is self don't show employee status container
     if (employeeNumber === selfNumber) return;
 

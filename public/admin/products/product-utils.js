@@ -1,43 +1,4 @@
 
-const getProductList = (props,onSuccess,onError) => {
-    const officeId = props.officeId;
-    const limit = props.limit;
-    const loadOnce = props.loadOnce;
-
-    window
-    .database
-    .transaction("types")
-    .objectStore("types")
-    .index("template")
-    .getAll("product",limit).onsuccess = function(e){
-        const products = e.target.result;
-        products.forEach((product,index)=>{
-            if(product.officeId !== officeId) {
-                products.splice(index,1)
-            }
-        })
-
-        onSuccess(products);    
-        if(products.length && loadOnce) return;
-        
-        http('GET', `${appKeys.getBaseUrl()}/api/office/${officeId}/type?template=product${limit ?`&limit=${limit}&start=0`:''}`).then(response => {
-            const tx = 
-            window
-            .database
-            .transaction("types","readwrite");
-            const store = tx.objectStore("types")
-
-            response.results.forEach(result=>{
-                result.template = 'product'
-                result.search_key_name = result.name.toLowerCase();
-                store.put(result);
-            });
-            tx.oncomplete = function() {
-               onSuccess(response.results)
-            }
-        }).catch(onError)
-    }
-}
 
 
 const showProductList = (products) => {

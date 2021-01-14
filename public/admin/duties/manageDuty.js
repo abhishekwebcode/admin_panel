@@ -104,8 +104,9 @@ const init = (office, officeId) => {
 
     const productMenu = new mdc.menu.MDCMenu(document.getElementById('product-menu'))
     /**  manage products */
-    getProductList({
+    getTypeList({
         officeId,
+        template:'product',
         loadOnce: true
     }, (products) => {
 

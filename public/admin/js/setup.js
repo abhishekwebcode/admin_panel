@@ -254,10 +254,7 @@ const startApplication = (office) => {
             openProfileBox(ev);
         })
         appLoader.remove();
-        if(window.location.pathname.split("/").indexOf("account")  > -1 || window.location.pathname.split("/").indexOf("account.html") > -1) {
-            init(office, officeActivity.activityId)
-            return
-        }
+
 
         const dialog = new mdc.dialog.MDCDialog(document.getElementById('payment-dialog'));
         const dialogBody = document.getElementById('payment-dialog--body');

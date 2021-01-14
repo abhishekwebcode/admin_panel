@@ -33,14 +33,11 @@ const putActivity = (activity) => {
 }
 const getOfficeActivity = (officeId) => {
     return new Promise((resolve, reject) => {
+        const pathsForFetch = ['account','admin','company']
+        const pathname = window.location.pathname.split('/')
         getActivity(officeId).then(record => {
-            
-            // if()
-
-            // if (record && officeHasMembership(record.schedule) && !isOfficeMembershipExpired(record.schedule)) {
-            //     return resolve(record);
-            // }
-            
+            if(!pathsForFetch.filter(path=>pathname.indexOf(path))) return resolve(record)
+    
             http('GET', `${appKeys.getBaseUrl()}/api/office/${officeId}/activity/${officeId}/`).then(officeActivity => {
                 putActivity(officeActivity).then(resolve)
             }).catch(reject)
