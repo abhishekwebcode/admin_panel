@@ -4,6 +4,11 @@ const init = (office,officeId) => {
         console.log(products)
         showProductList(products)
     });
+
+    getTypeList({officeId,limit:5,template:'branch'},(branches)=>{
+        console.log(branches)
+        showBranchList(branches)
+    });
 }
 
 

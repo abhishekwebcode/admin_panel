@@ -34,9 +34,9 @@ const putActivity = (activity) => {
 const getOfficeActivity = (officeId) => {
     return new Promise((resolve, reject) => {
         const pathsForFetch = ['account','admin','company']
-        const pathname = window.location.pathname.split('/')
+        const lastPathName = window.location.pathname.split('/').filter(p=>p).pop()
         getActivity(officeId).then(record => {
-            if(!pathsForFetch.filter(path=>pathname.indexOf(path))) return resolve(record)
+            if(pathsForFetch.indexOf(lastPathName) == -1) return resolve(record)
     
             http('GET', `${appKeys.getBaseUrl()}/api/office/${officeId}/activity/${officeId}/`).then(officeActivity => {
                 putActivity(officeActivity).then(resolve)
@@ -346,4 +346,45 @@ const isUserActive = (user) => {
         !user.adminId &&
         !user.subscriptions.length);
 
+}
+
+
+const getTypeList = (props,onSuccess,onError) => {
+    const officeId = props.officeId;
+    const limit = props.limit;
+    const loadOnce = props.loadOnce;
+    const template = props.template
+    window
+    .database
+    .transaction("types")
+    .objectStore("types")
+    .index("template")
+    .getAll(template,limit).onsuccess = function(e){
+        const records = e.target.result;
+        records.forEach((record,index)=>{
+            if(record.officeId !== officeId) {
+                records.splice(index,1)
+            }
+        })
+
+        onSuccess(records);    
+        if(records.length && loadOnce) return;
+        
+        http('GET', `${appKeys.getBaseUrl()}/api/office/${officeId}/type?template=${template}${limit ?`&limit=${limit}&start=0`:''}`).then(response => {
+            const tx = 
+            window
+            .database
+            .transaction("types","readwrite");
+            const store = tx.objectStore("types")
+
+            response.results.forEach(result=>{
+                result.template = template
+                result.search_key_name = result.name.toLowerCase();
+                store.put(result);
+            });
+            tx.oncomplete = function() {
+               onSuccess(response.results)
+            }
+        }).catch(onError)
+    }
 }

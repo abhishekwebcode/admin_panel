@@ -57,9 +57,6 @@ const init = (office, officeId) => {
         })
     }, 1000)
 
-    addBranchBtn.addEventListener('click',(ev)=>{
-        redirect('/admin/locations/branch')
-    })
 }
 
 

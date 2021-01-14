@@ -16,11 +16,8 @@ const showProductList = (products) => {
         new mdc.ripple.MDCRipple(li);
         ul.appendChild(li);
         ul.appendChild(createElement('li',{className:'mdc-list-divider'}))
-        ul.appendChild(createElement('li',{
-            className:'mdc-list-divider'
-        }))
+
     });
-    
 }
 
 
@@ -40,7 +37,7 @@ const createProductLi = (product) => {
     </span>
     <div class="mdc-list-item__meta">
         ${product.value ? `<span class='product-value'>${formatMoney(product.value)}</span>` :''}
-        <a href='../products/manage.html?id=${product.id}&name=${product.name}' class="material-icons list-meta--icon">${product.canEdit ? 'edit':'keyboard_arrow_right'}</a>
+        <a href='../products/manage.html?id=${product.id}&name=${product.name}&canEdit=${product.canEdit}' class="material-icons list-meta--icon">${product.canEdit ? 'edit':'keyboard_arrow_right'}</a>
     </div>`
     return li;
 }

@@ -15,6 +15,8 @@ const init = (office, officeId) => {
     // if activity id is  found, then udpate the form else create
     const formId = getFormId();
     const requestParams = getFormRequestParams();
+    const canEdit = new URLSearchParams(window.location.search).get('canEdit') === "true"
+
     const primaryPhoneNumberMdc = new mdc.textField.MDCTextField(document.getElementById('phone-field-mdc-primary'))
     const secondaryPhoneNumberMdc = new mdc.textField.MDCTextField(document.getElementById('phone-field-mdc-secondary'))
 
@@ -28,7 +30,19 @@ const init = (office, officeId) => {
     });
 
     if (formId) {
-        document.getElementById('form-heading').innerHTML = 'Update ' + new URLSearchParams(window.location.search).get('name')
+        if(canEdit) {
+            document.getElementById('form-heading').innerHTML = 'Update ' + new URLSearchParams(window.location.search).get('name')
+        }
+        else {
+            branchName.setAttribute('disabled','true')
+            primaryPhoneNumber.setAttribute('disabled','true')
+            secondaryPhoneNumber.setAttribute('disabled','true')
+            address.setAttribute('disabled','true')
+            weeklyOff.setAttribute('disabled','true')
+            weekdayStartTime.setAttribute('disabled','true')
+            weekdayEndTime.setAttribute('disabled','true')
+            submitBtn.remove()
+        }
         getActivity(formId).then(activity => {
             if (activity) {
                 updateBranchFields(activity)

@@ -1,4 +1,3 @@
-
 const employeeName = document.getElementById('name');
 const phonenumber = document.getElementById('phonenumber');
 const designation = document.getElementById('designation');
@@ -19,13 +18,31 @@ const init = (office, officeId) => {
     // check if we have activity id in url. 
     // if activity id is  found, then udpate the form else create
     const formId = getFormId();
+    const canEdit = new URLSearchParams(window.location.search).get('canEdit') === "true"
+
     const requestParams = getFormRequestParams();
+
+
+
     const employeePhoneNumberMdc = new mdc.textField.MDCTextField(document.getElementById('phone-field-mdc'))
     const iti = phoneFieldInit(employeePhoneNumberMdc);
     branchSelect = new mdc.select.MDCSelect(document.getElementById('branch-select'))
 
     if (formId) {
-        document.getElementById('form-heading').innerHTML = 'Update ' + new URLSearchParams(window.location.search).get('name')
+        if (canEdit) {
+            document.getElementById('form-heading').innerHTML = 'Update ' + new URLSearchParams(window.location.search).get('name')
+        }
+        else {
+            submitBtn.remove();
+            employeeName.setAttribute('disabled')
+            // phonenumber.setAttribute('disabled')
+            designation.setAttribute('disabled')
+            code.setAttribute('disabled')
+            supervisorInput.setAttribute('disabled')
+            branchSelect.disabled = true
+            employeePhoneNumberMdc.disabled = true
+        }
+        
         getActivity(formId).then(activity => {
             if (activity) {
                 employeeActivity = activity
@@ -40,6 +57,9 @@ const init = (office, officeId) => {
         })
     }
 
+
+
+
     userAdditionComponent({
         officeId,
         input: supervisorInput
@@ -52,28 +72,46 @@ const init = (office, officeId) => {
 
 
     // const branchSelect = document.getElementById('branch-select').MDCSelect;
-    getTypeList({template:'branch',officeId},(branches)=>{
-        console.log('branches',branches)
-        const ul = document.getElementById('branch-list')
-        branches.forEach(branch=>{
-            const li = createElement('li',{
-                className:'mdc-list-item'
-            })
-            li.dataset.value = branch.attachment.Name.value
-            li.innerHTML = `<span class="mdc-list-item__ripple"></span>
-            <span class="mdc-list-item__text">${branch.attachment.Name.value}</span>`
-            ul.appendChild(li)
-        })  
-        
-    },(error)=>{
+    let oldBranches = {}
+    const newBranches = {}
+
+    getTypeList({
+        template: 'branch',
+        officeId
+    }, (branches) => {
+        console.log('branches', branches)
+
+        const ul = document.getElementById('branch-list');
+
+        const oldBranchLength = Object.keys(oldBranches).length
+        branches.forEach(branch => {
+            newBranches[branch.name] = branch;
+        })
+        if (!oldBranchLength) {
+            oldBranches = newBranches
+        }
+        removeOldBranches(oldBranches, newBranches);
+
+
+        branches.forEach(branch => {
+            if (!document.querySelector(`[data-value="${branch.name}"]`)) {
+                const li = createElement('li', {
+                    className: 'mdc-list-item'
+                })
+
+                li.dataset.value = branch.name
+                li.innerHTML = `<span class="mdc-list-item__ripple"></span>
+                    <span class="mdc-list-item__text">${branch.name}</span>`
+                ul.appendChild(li)
+            }
+        })
+
+
+
+    }, (error) => {
         console.error(error)
     })
 
-    branchSelect.listen('MDCSelect:change',()=>{
-        if(branchSelect.value === "new") {
-            redirect('/admin/locations/branch')
-        }
-    })
 
     form.addEventListener('submit', (ev) => {
 
@@ -91,6 +129,11 @@ const init = (office, officeId) => {
             return;
         };
 
+        if (!branchSelect && !branchSelect.value) {
+            alert('Select a branch')
+            return
+        }
+
         setHelperValid(employeePhoneNumberMdc);
         submitBtn.classList.add('active')
 
@@ -103,22 +146,31 @@ const init = (office, officeId) => {
         activityBody.setAttachment('Designation', designation.value, 'string')
         activityBody.setAttachment('Employee Code', code.value, 'string');
         activityBody.setAttachment('First Supervisor', supervisorInput.dataset.number, 'phoneNumber');
-        
-        activityBody.setAttachment('Branch',branchSelect.value)
+        activityBody.setAttachment('Base Location', branchSelect.value, 'branch');
+
+
         const requestBody = activityBody.get();
-        getUser(officeId,firebase.auth().currentUser.phoneNumber).then(userRecord => {
-          
+        getUser(officeId, firebase.auth().currentUser.phoneNumber).then(userRecord => {
+
             createEmployee(requestParams, requestBody, hasEmployeeSubscription(userRecord))
         })
     })
 }
 
+const removeOldBranches = (oldBranch, newBranch) => {
+    Object.keys(oldBranch).forEach(key => {
+        if (!newBranch[key]) {
+            document.querySelector(`[data-value="${key}"]`).remove()
+        }
+    });
+}
+
 const hasEmployeeSubscription = (userRecord) => {
-    if(!userRecord) return;
-    if(userRecord.subscriptions.some(sub=>sub.name==='employee')) return true;
-    if(userRecord.subscriptions.filter(sub => sub.name === "subscription" || sub.name === "employee").length >= 2) return true;
-    if(userRecord.subscriptions.some(sub=>sub.name ==='subscription')) return false
-    
+    if (!userRecord) return;
+    if (userRecord.subscriptions.some(sub => sub.name === 'employee')) return true;
+    if (userRecord.subscriptions.filter(sub => sub.name === "subscription" || sub.name === "employee").length >= 2) return true;
+    if (userRecord.subscriptions.some(sub => sub.name === 'subscription')) return false
+
 }
 
 const createEmployee = (requestParams, requestBody, hasEmployeeSubscription, count = 0) => {
@@ -194,10 +246,10 @@ const updateEmployeeFields = (officeId, activity) => {
             }
         })
     }
+
     branchSelect.value = activity.attachment.Branch.value
+
     const employeeText = document.getElementById('employee-text')
-
-
     employeeText.textContent = `${activity.attachment.Name.value} is a registered employee`
     employeeStatusButton.querySelector('.mdc-button__label').textContent = `Remove ${empName.split(" ")[0]}`
     employeeStatusButton.removeEventListener('click', statusChange, true);
@@ -222,8 +274,8 @@ const updateEmployeeFields = (officeId, activity) => {
             return;
         }
 
-        getUser(officeId,employeeNumber).then(rec => {
-            if(!rec) return
+        getUser(officeId, employeeNumber).then(rec => {
+            if (!rec) return
             //if employee is another admin don't show
             if (rec.adminId) return;
 
@@ -239,11 +291,11 @@ const updateEmployeeFields = (officeId, activity) => {
  * @param {string} phonenumber 
  * @returns {object} e.target.result
  */
-const getUser = (officeId,phonenumber) => {
-    return new Promise((resolve,reject) => {
+const getUser = (officeId, phonenumber) => {
+    return new Promise((resolve, reject) => {
         window.database.transaction('users').objectStore('users').get(phonenumber).onsuccess = function (e) {
             const record = e.target.result;
-            if(record) return resolve(record)
+            if (record) return resolve(record)
             getUsersDetails(`${appKeys.getBaseUrl()}/api/office/${officeId}/user?phoneNumber=${encodeURIComponent(phonenumber)}`).then(response => {
                 resolve(response.results[0]);
             }).catch(reject)
