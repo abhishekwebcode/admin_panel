@@ -3,6 +3,8 @@ const container = document.querySelector('.fabs');
 const mainContent = document.querySelector('.main-content')
 const searchInput = document.getElementById('search-employee');
 const ul = document.getElementById('employees-list');
+const downloadBtn = document.getElementById('download-employees')
+
 /**
  * Divide the parent dom by mdc two--line list height and round of to nearest whole number.
  * The resulting positive integer will the query limit for users's api
@@ -62,7 +64,23 @@ const init = (office, officeId) => {
                 ul.appendChild(createUserli(user))
             })
         })
-    }, 1000)
+    }, 1000);
+
+
+    downloadBtn.addEventListener('click',()=>{
+        const reportUrl = `${appKeys.getBaseUrl()}/api/office/${officeId}/user?downloadReport=true`;
+        downloadBtn.classList.add('in-progress')
+        getReportBinary(reportUrl).then(data=>{
+            downloadBtn.classList.remove('in-progress')
+            if(!data) {
+                showSnacksApiResponse('No data is available');
+                return
+            }
+            handleReport(data,'users');
+        }).catch((err)=>{
+            downloadBtn.classList.remove('in-progress')
+        })
+    })
 }
 
 

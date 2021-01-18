@@ -45,13 +45,22 @@
     position: relative;
     width: 100%;
     padding-bottom: 56px;
+    display: inline-flex;
+    align-items: center;
 }
 
 .list-search-container .mdc-text-field {
-    position: fixed;
-    width: calc(100% - 32px);
     background-color: white;
     z-index: 1;
+}
+
+.list-search-container .download-report {
+    margin-left: auto;
+    margin-left: 10px;
+}
+
+.list-search-container .download-report .mdc-button {
+    height: 56px;
 }
 
 .users-list,
@@ -729,6 +738,10 @@ form textarea {
     margin-bottom: 20px;
     margin-top: 0px;
 }
+
+.download-report-btn:not(.mdc-button--raised) .straight-loader , .employee-status-button:not(.mdc-button--raised) .straight-loader {
+    color: var(--mdc-theme-primary);
+}
 .employee-status-button .straight-loader {
     color: var(--mdc-theme-primary);
 }
@@ -741,7 +754,7 @@ form textarea {
     display: block;
 }
 .download-report-btn.in-progress .mdc-button__label , .employee-status-button.in-progress .mdc-button__label{
-    display: none;
+    opacity: 0;
 }
 
 .employee-status {

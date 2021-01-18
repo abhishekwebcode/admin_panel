@@ -79,7 +79,13 @@ const init = (office, officeId) => {
 
             getReportBinary(reportURL).then(data=>{
                 this.classList.remove('in-progress')
-                handleReport(data,fileName, this.nextElementSibling)
+                if (!data) {
+                    this.nextElementSibling.textContent = 'No data found for this date'
+                    return
+                }
+                this.nextElementSibling.textContent = '';
+
+                handleReport(data,fileName)
             }).catch((err)=>{
                 this.classList.remove('in-progress')
                 this.nextElementSibling.textContent  = err.message
@@ -88,41 +94,9 @@ const init = (office, officeId) => {
     })
 }
 
-const handleReport = (data, filename,errorField) => {
-    if (!data) {
-        errorField.textContent = 'No data found for this date'
-        return
-    }
-    errorField.textContent = ''
-    console.log(data)
-    const file = window.URL.createObjectURL(data);
-    const a = document.createElement('a');
-    a.href = file;
-    a.download = `${filename}.xlsx`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-}
 
 const getURLStringFromDate = (dateString) => {
     const momentDate = moment(dateString, 'YYYY-MM-DD')
     return `&year=${momentDate.year()}&month=${momentDate.month()}&day=${momentDate.date()}`
 }
 
-const getReportBinary = (url) => {
-    return new Promise((resolve, reject) => {
-        firebase.auth().currentUser.getIdToken().then(token => {
-            fetch(url, {
-                method: 'GET',
-                headers: new Headers({
-                    "Authorization": `Bearer ${token}`,
-                })
-            }).then(response => {
-                if (response.status == 204) {
-                    return response.text();
-                }
-                return response.blob()
-            }).then(resolve).catch(reject)
-        })
-    })
-}

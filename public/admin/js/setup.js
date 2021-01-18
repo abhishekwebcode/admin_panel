@@ -32,7 +32,7 @@ window.addEventListener('load', () => {
 
             const claims = idTokenResult.claims;
 
-            if (claims.support) return redirect('/support');
+            // if (claims.support) return redirect('/support');
             if (claims.admin && claims.admin.length) {
 
                 // if there are multiple offices fill the drawer header with office list

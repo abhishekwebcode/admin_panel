@@ -406,3 +406,34 @@ const getTypeList = (props, onSuccess, onError) => {
             }).catch(onError)
         }
 }
+
+const handleReport = (data, filename) => {
+
+    console.log(data)
+    const file = window.URL.createObjectURL(data);
+    const a = document.createElement('a');
+    a.href = file;
+    a.download = `${filename}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+}
+
+
+const getReportBinary = (url) => {
+    return new Promise((resolve, reject) => {
+        firebase.auth().currentUser.getIdToken().then(token => {
+            fetch(url, {
+                method: 'GET',
+                headers: new Headers({
+                    "Authorization": `Bearer ${token}`,
+                })
+            }).then(response => {
+                if (response.status == 204) {
+                    return response.text();
+                }
+                return response.blob()
+            }).then(resolve).catch(reject)
+        })
+    })
+}
