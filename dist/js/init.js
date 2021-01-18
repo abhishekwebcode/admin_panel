@@ -50,8 +50,8 @@ var handleWelcomePage = function handleWelcomePage() {
 
 var handleAuthRedirect = function handleAuthRedirect(authResult) {
   firebase.auth().currentUser.getIdTokenResult().then(function (idTokenResult) {
-    handleAuthAnalytics(authResult, idTokenResult); // if (idTokenResult.claims.support) return redirect('/support');
-
+    handleAuthAnalytics(authResult, idTokenResult);
+    if (idTokenResult.claims.support) return redirect('/support');
     if (idTokenResult.claims.admin && idTokenResult.claims.admin.length > 0) return redirect('/admin/index.html');
     redirect('/join.html?new_user=1');
   });
