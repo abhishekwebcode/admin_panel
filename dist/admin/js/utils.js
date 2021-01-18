@@ -379,3 +379,33 @@ var getTypeList = function getTypeList(props, onSuccess, onError) {
     }).catch(onError);
   };
 };
+
+var handleReport = function handleReport(data, filename) {
+  console.log(data);
+  var file = window.URL.createObjectURL(data);
+  var a = document.createElement('a');
+  a.href = file;
+  a.download = "".concat(filename, ".xlsx");
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+};
+
+var getReportBinary = function getReportBinary(url) {
+  return new Promise(function (resolve, reject) {
+    firebase.auth().currentUser.getIdToken().then(function (token) {
+      fetch(url, {
+        method: 'GET',
+        headers: new Headers({
+          "Authorization": "Bearer ".concat(token)
+        })
+      }).then(function (response) {
+        if (response.status == 204) {
+          return response.text();
+        }
+
+        return response.blob();
+      }).then(resolve).catch(reject);
+    });
+  });
+};

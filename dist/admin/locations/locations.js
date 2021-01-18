@@ -3,6 +3,7 @@ var mainContent = document.querySelector('.main-content');
 var searchInput = document.getElementById('search-location');
 var ul = document.getElementById('locations-list');
 var addBranchBtn = document.getElementById('add-branch');
+var downloadBtn = document.getElementById('download-locations');
 /**
  * Divide the parent dom by mdc two--line list height and round of to nearest whole number.
  * The resulting positive integer will be the query limit for users's api
@@ -52,6 +53,22 @@ var init = function init(office, officeId) {
       });
     });
   }, 1000);
+  downloadBtn.addEventListener('click', function () {
+    var reportUrl = "".concat(appKeys.getBaseUrl(), "/api/office/").concat(officeId, "/location?downloadReport=true");
+    downloadBtn.classList.add('in-progress');
+    getReportBinary(reportUrl).then(function (data) {
+      downloadBtn.classList.remove('in-progress');
+
+      if (!data) {
+        showSnacksApiResponse('No data is available');
+        return;
+      }
+
+      handleReport(data, 'locations');
+    }).catch(function (err) {
+      downloadBtn.classList.remove('in-progress');
+    });
+  });
 }; // container.children[0].addEventListener('click', (ev) => {
 //   redirect('/admin/locations/customer')
 // })

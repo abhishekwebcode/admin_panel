@@ -100,37 +100,29 @@
                 <h3 class="mdc-drawer__title">Manage office</h3>
                 <div class="mdc-select mdc-select--outlined mdc-select--no-label" id="office-select">
                     <div class="mdc-select__anchor" aria-labelledby="outlined-select-label">
-                      <span id="demo-selected-text" class="mdc-select__selected-text"></span>
-                      <span class="mdc-select__dropdown-icon">
-                        <svg
-                            class="mdc-select__dropdown-icon-graphic"
-                            viewBox="7 10 10 5">
-                          <polygon
-                              class="mdc-select__dropdown-icon-inactive"
-                              stroke="none"
-                              fill-rule="evenodd"
-                              points="7 10 12 15 17 10">
-                          </polygon>
-                          <polygon
-                              class="mdc-select__dropdown-icon-active"
-                              stroke="none"
-                              fill-rule="evenodd"
-                              points="7 15 12 10 17 15">
-                          </polygon>
-                        </svg>
-                      </span>
-                      <span class="mdc-notched-outline">
-                        <span class="mdc-notched-outline__leading"></span>
-                        <span class="mdc-notched-outline__trailing"></span>
-                      </span>
+                        <span id="demo-selected-text" class="mdc-select__selected-text"></span>
+                        <span class="mdc-select__dropdown-icon">
+                            <svg class="mdc-select__dropdown-icon-graphic" viewBox="7 10 10 5">
+                                <polygon class="mdc-select__dropdown-icon-inactive" stroke="none" fill-rule="evenodd"
+                                    points="7 10 12 15 17 10">
+                                </polygon>
+                                <polygon class="mdc-select__dropdown-icon-active" stroke="none" fill-rule="evenodd"
+                                    points="7 15 12 10 17 15">
+                                </polygon>
+                            </svg>
+                        </span>
+                        <span class="mdc-notched-outline">
+                            <span class="mdc-notched-outline__leading"></span>
+                            <span class="mdc-notched-outline__trailing"></span>
+                        </span>
                     </div>
-                  
+
                     <!-- Other elements from the select remain. -->
                     <div class="mdc-select__menu mdc-menu mdc-menu-surface mdc-menu-surface--fullwidth" role="listbox">
                         <ul class="mdc-list" id="office-list">
                         </ul>
                     </div>
-                  </div>
+                </div>
 
             </div>
             <nav class="mdc-list">
@@ -160,6 +152,12 @@
                     <i class="material-icons mdc-list-item__graphic" aria-hidden="true">get_app</i>
                     <span class="mdc-list-item__text">Reports</span>
                 </a>
+                 <li class="mdc-list-divider"></li>
+                <a class="mdc-list-item" href="../account.html" tabindex="-1">
+                    <span class="mdc-list-item__ripple"></span>
+                    <i class="material-icons mdc-list-item__graphic" aria-hidden="true">settings</i>
+                    <span class="mdc-list-item__text">Manage account</span>
+                </a>
             </nav>
         </div>
     </aside>
@@ -168,19 +166,36 @@
     <div class="mdc-top-app-bar--fixed-adjust page-content-section mdc-drawer-app-content">
         <main class="main-content content-max-width">
             <div class="users-section">
-                <div class="list-search-container">
-                    <label
-                        class="mdc-text-field mdc-text-field--outlined mdc-text-field--no-label mdc-text-field--with-leading-icon full-width"
-                        data-mdc-auto-init="MDCTextField">
-                        <i class="material-icons mdc-text-field__icon mdc-text-field__icon--leading" tabindex="0"
-                            role="button">search</i>
-                        <input class="mdc-text-field__input" type="text" aria-label="Label"
-                            placeholder="Search employee by name or phone number" id="search-employee">
-                        <span class="mdc-notched-outline">
-                            <span class="mdc-notched-outline__leading"></span>
-                            <span class="mdc-notched-outline__trailing"></span>
-                        </span>
-                    </label>
+                <div class="list-search-container mdc-layout-grid__inner">
+                    <div
+                        class="mdc-layout-grid__cell--span-10-desktop mdc-layout-grid__cell--span-6-tablet mdc-layout-grid__cell--span-4-phone">
+                        <label
+                            class="mdc-text-field mdc-text-field--outlined mdc-text-field--no-label mdc-text-field--with-leading-icon full-width"
+                            data-mdc-auto-init="MDCTextField">
+                            <i class="material-icons mdc-text-field__icon mdc-text-field__icon--leading" tabindex="0"
+                                role="button">search</i>
+                            <input class="mdc-text-field__input" type="text" aria-label="Label"
+                                placeholder="Search employee by name or phone number" id="search-employee">
+                            <span class="mdc-notched-outline">
+                                <span class="mdc-notched-outline__leading"></span>
+                                <span class="mdc-notched-outline__trailing"></span>
+                            </span>
+                        </label>
+
+                    </div>
+                    <div
+                        class="mdc-layout-grid__cell--span-2-desktop mdc-layout-grid__cell--span-2-tablet mdc-layout-grid__cell--span-4-phone">
+
+                        <div class="download-report">
+                            <button class="mdc-button mdc-button--outlined download-report-btn"
+                                data-mdc-auto-init="MDCRipple" id="download-employees">
+                                <div class="mdc-button__ripple"></div>
+                                <i class="material-icons mdc-button__icon" aria-hidden="true">get_app</i>
+                                <div class="straight-loader"></div>
+                                <span class="mdc-button__label">Download</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 <div class="users-list">
                     <ul class="mdc-list mdc-list--avatar-list mdc-list--two-line employee-list" id="employees-list"

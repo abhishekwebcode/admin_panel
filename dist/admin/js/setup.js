@@ -26,8 +26,7 @@ window.addEventListener('load', function () {
     drawer = new mdc.drawer.MDCDrawer(document.querySelector(".mdc-drawer"));
     window.mdc.autoInit();
     firebase.auth().currentUser.getIdTokenResult().then(function (idTokenResult) {
-      var claims = idTokenResult.claims;
-      if (claims.support) return redirect('/support');
+      var claims = idTokenResult.claims; // if (claims.support) return redirect('/support');
 
       if (claims.admin && claims.admin.length) {
         // if there are multiple offices fill the drawer header with office list

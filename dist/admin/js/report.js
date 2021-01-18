@@ -78,7 +78,13 @@ var init = function init(office, officeId) {
       getReportBinary(reportURL).then(function (data) {
         _this.classList.remove('in-progress');
 
-        handleReport(data, fileName, _this.nextElementSibling);
+        if (!data) {
+          _this.nextElementSibling.textContent = 'No data found for this date';
+          return;
+        }
+
+        _this.nextElementSibling.textContent = '';
+        handleReport(data, fileName);
       }).catch(function (err) {
         _this.classList.remove('in-progress');
 
@@ -88,43 +94,7 @@ var init = function init(office, officeId) {
   });
 };
 
-var handleReport = function handleReport(data, filename, errorField) {
-  if (!data) {
-    errorField.textContent = 'No data found for this date';
-    return;
-  }
-
-  errorField.textContent = '';
-  console.log(data);
-  var file = window.URL.createObjectURL(data);
-  var a = document.createElement('a');
-  a.href = file;
-  a.download = "".concat(filename, ".xlsx");
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-};
-
 var getURLStringFromDate = function getURLStringFromDate(dateString) {
   var momentDate = moment(dateString, 'YYYY-MM-DD');
   return "&year=".concat(momentDate.year(), "&month=").concat(momentDate.month(), "&day=").concat(momentDate.date());
-};
-
-var getReportBinary = function getReportBinary(url) {
-  return new Promise(function (resolve, reject) {
-    firebase.auth().currentUser.getIdToken().then(function (token) {
-      fetch(url, {
-        method: 'GET',
-        headers: new Headers({
-          "Authorization": "Bearer ".concat(token)
-        })
-      }).then(function (response) {
-        if (response.status == 204) {
-          return response.text();
-        }
-
-        return response.blob();
-      }).then(resolve).catch(reject);
-    });
-  });
 };

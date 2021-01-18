@@ -2,7 +2,8 @@
 const mainContent = document.querySelector('.main-content')
 const searchInput = document.getElementById('search-location');
 const ul = document.getElementById('locations-list');
-const addBranchBtn = document.getElementById('add-branch')
+const addBranchBtn = document.getElementById('add-branch');
+const downloadBtn = document.getElementById('download-locations')
 /**
  * Divide the parent dom by mdc two--line list height and round of to nearest whole number.
  * The resulting positive integer will be the query limit for users's api
@@ -55,7 +56,22 @@ const init = (office, officeId) => {
                 ul.appendChild(createLocationLi(location))
             })
         })
-    }, 1000)
+    }, 1000);
+
+    downloadBtn.addEventListener('click',()=>{
+        const reportUrl = `${appKeys.getBaseUrl()}/api/office/${officeId}/location?downloadReport=true`;
+        downloadBtn.classList.add('in-progress')
+        getReportBinary(reportUrl).then(data=>{
+            downloadBtn.classList.remove('in-progress')
+            if(!data) {
+                showSnacksApiResponse('No data is available');
+                return
+            }
+            handleReport(data,'locations');
+        }).catch((err)=>{
+            downloadBtn.classList.remove('in-progress')
+        })
+    })
 
 }
 

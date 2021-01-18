@@ -45,8 +45,8 @@
     position: relative;
     width: 100%;
     padding-bottom: 56px;
-    display: inline-flex;
-    align-items: center;
+    /* display: inline-flex;
+    align-items: center; */
 }
 
 .list-search-container .mdc-text-field {
@@ -56,11 +56,11 @@
 
 .list-search-container .download-report {
     margin-left: auto;
-    margin-left: 10px;
 }
 
 .list-search-container .download-report .mdc-button {
     height: 56px;
+    width: 100%;
 }
 
 .users-list,
