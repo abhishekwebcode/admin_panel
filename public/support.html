@@ -122,6 +122,8 @@
                         <option value="employeeActivity">Employee Activity</option>
                         <option value="location">Location Report</option>
                         <option value="monthlyAttendance">Monthly Attendance</option>
+                        <option value="user">User Resource</option>
+                        <option value="location">Locations Resource</option>
                     </select>
                 </div>
             </div>
@@ -609,6 +611,12 @@
     let momentObject = moment().year(year).month(month);
     if (day) momentObject = momentObject.date(day);
     const dateString = momentObject.format('MMMM YYYY')
+    if (reportType === "user") {
+      return `|${office}| OnDuty USER report | ${dateString}`
+    }
+    if (reportType === "location") {
+      return `|${office}| OnDuty LOCATION report | ${dateString}`
+    }
     if (reportType === "monthlyAttendance") {
       return `|${office}| OnDuty Monthly Attendance report | ${dateString}`
     }
@@ -643,7 +651,11 @@
     outputLabel.innerHTML = ``;
     if (confirm(promptText)) {
       outputLabel.innerHTML = `Requesting....`;
-      const urlObject = new URL(`${appKeys.getBaseUrl()}/api/office/${office}/report/`);
+      const urlObject = new URL(
+          ['user', 'location'].indexOf(reportType) > -1 ?
+              `${appKeys.getBaseUrl()}/api/office/${office}/${reportType}/?downloadReport=true` :
+              `${appKeys.getBaseUrl()}/api/office/${office}/report/`
+      );
       urlObject.searchParams.append('support', 'true');
       urlObject.searchParams.append('month', month);
       urlObject.searchParams.append('year', year);
